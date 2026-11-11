@@ -1,0 +1,23 @@
+verilator --cc --exe --build -j 0 --trace-fst --assert --timescale-override 1ps/1ps --top-module bio_bdma_wrapper +define+SIM +define+USE_OSS_BRIDGE -Wno-fatal -Wno-BLKANDNBLK -Wno-WIDTH -Wno-COMBDLY -Wno-CASEINCOMPLETE --no-timing -Wno-UNOPTFLAT -Wno-TIMESCALEMOD -Wno-STMTDLY \
+  -f rtl.f \
+  /home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/sim/sim_main.cpp \
+  --CFLAGS "-std=c++17 -pthread -I/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/sim" \
+  --LDFLAGS "-pthread" \
+  -Mdir build -o bio_sim
+make[1]: Entering directory '/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/build'
+make[1]: Nothing to be done for 'default'.
+make[1]: Leaving directory '/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/build'
+- V e r i l a t i o n   R e p o r t: Verilator 5.052 2026-09-05 rev v5.052
+- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB
+- Verilator: Walltime 0.026 s (elab=0.000, cvt=0.000, bld=0.024); cpu 0.002 s on 4 threads; allocated 6.066 MB
+[trace] writing waveform/trace.fst
+[cfg] fclk=700.000 MHz  pclk=fclk/16 (43.750 MHz)
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_rd_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_wr_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+[selftest] sfr_cfginfo @0x04 = 0x10000408 (expect 0x10000408) -> PASS
+[run] up to 0 cycles
+[done] sim_time = 902496 ps  (0 cycles)

@@ -1,0 +1,97 @@
+verilator --cc --exe --build -j 0 --trace-fst --assert --timescale-override 1ps/1ps --top-module bio_bdma_wrapper +define+SIM +define+USE_OSS_BRIDGE -Wno-fatal -Wno-BLKANDNBLK -Wno-WIDTH -Wno-COMBDLY -Wno-CASEINCOMPLETE --no-timing -Wno-UNOPTFLAT -Wno-TIMESCALEMOD -Wno-STMTDLY \
+  -f rtl.f \
+  /home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/sim/sim_main.cpp \
+  --CFLAGS "-std=c++17 -pthread -I/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/sim" \
+  --LDFLAGS "-pthread" \
+  -Mdir build -o bio_sim
+make[1]: Entering directory '/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/build'
+make[1]: Nothing to be done for 'default'.
+make[1]: Leaving directory '/home/tanmaymanjaro/CrossBar_Dabao_BIOscope/vendor/bio-sim/build'
+- V e r i l a t i o n   R e p o r t: Verilator 5.052 2026-09-05 rev v5.052
+- Verilator: Built from 0.000 MB sources in 0 modules, into 0.000 MB in 0 C++ files needing 0.000 MB
+- Verilator: Walltime 0.024 s (elab=0.000, cvt=0.000, bld=0.022); cpu 0.002 s on 4 threads; allocated 5.977 MB
+[trace] writing waveform/blink.fst
+[cfg] fclk=350.000 MHz  pclk=fclk/8 (43.750 MHz)
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_rd_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_wr_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+[selftest] sfr_cfginfo @0x04 = 0x10000408 (expect 0x10000408) -> PASS
+[mon] watching gpio_out bit 21
+[mon] watching gpio_dir bit 21
+[mon] watching irq
+[load] sw/blink/blink.bin -> core 0 (10 words)
+[poke] sfr @0x008 <= 0x00000000
+[poke] sfr @0x050 <= 0x00010000
+[poke] sfr @0x06c <= 0x00000000
+[start] sfr_ctrl @0x00 <= 0x111 (en=0x1 restart=0x1 clkdiv=0x1)
+[run] up to 10000 cycles (stop on trap)
+[mon] cyc=47 (2226382 ps)  gpio_dir[21]: 0 -> 1
+[mon] cyc=58 (2257820 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=202 (2669372 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=369 (3146658 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=513 (3558210 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=680 (4035496 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=824 (4447048 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=991 (4924334 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=1135 (5335886 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=1302 (5813172 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=1446 (6224724 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=1613 (6702010 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=1757 (7113562 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=1924 (7590848 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=2036 (8002400 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=2203 (8479686 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=2347 (8891238 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=2514 (9368524 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=2658 (9780076 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=2825 (10257362 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=2969 (10668914 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=3136 (11146200 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=3280 (11557752 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=3447 (12035038 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=3591 (12446590 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=3758 (12923876 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=3902 (13335428 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=4037 (13812714 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=4181 (14224266 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=4348 (14701552 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=4492 (15113104 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=4659 (15590390 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=4803 (16001942 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=4970 (16479228 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=5114 (16890780 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=5281 (17368066 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=5425 (17779618 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=5592 (18256904 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=5736 (18668456 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=5903 (19145742 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=6015 (19557294 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=6182 (20034580 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=6326 (20446132 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=6493 (20923418 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=6637 (21334970 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=6804 (21812256 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=6948 (22223808 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=7115 (22701094 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=7259 (23112646 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=7426 (23589932 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=7570 (24001484 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=7737 (24478770 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=7881 (24890322 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=8016 (25367608 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=8160 (25779160 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=8327 (26256446 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=8471 (26667998 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=8638 (27145284 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=8782 (27556836 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=8949 (28034122 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=9093 (28445674 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=9260 (28922960 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=9404 (29334512 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=9571 (29811798 ps)  gpio_out[21]: 0 -> 1
+[mon] cyc=9715 (30223350 ps)  gpio_out[21]: 1 -> 0
+[mon] cyc=9882 (30700636 ps)  gpio_out[21]: 0 -> 1
+[done] sim_time = 31312248 ps  (10000 cycles)

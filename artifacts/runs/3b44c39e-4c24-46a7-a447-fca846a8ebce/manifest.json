@@ -1,0 +1,52 @@
+{
+  "run_id": "3b44c39e-4c24-46a7-a447-fca846a8ebce",
+  "experiment_id": "bio-smoke",
+  "experiment_title": "BIO-sim smoke test",
+  "mode": "SIMULATION",
+  "adapter": "official-bio-sim",
+  "state": "COMPLETED",
+  "started_at": 1794392614.4953792,
+  "finished_at": 1794392614.7082317,
+  "duration_seconds": 0.2129,
+  "exit_code": 0,
+  "stdout_path": "artifacts/runs/3b44c39e-4c24-46a7-a447-fca846a8ebce/stdout.log",
+  "stderr_path": "artifacts/runs/3b44c39e-4c24-46a7-a447-fca846a8ebce/stderr.log",
+  "stdout": "[trace] writing waveform/trace.fst\n[cfg] fclk=700.000 MHz  pclk=fclk/16 (43.750 MHz)\nAddressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_rd_inst.s_ifaces[0].addr_inst\n 0 ( 0): 40000000 / 29 -- 40000000-5fffffff\n 1 ( 0): 60000000 / 29 -- 60000000-7fffffff\nAddressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_wr_inst.s_ifaces[0].addr_inst\n 0 ( 0): 40000000 / 29 -- 40000000-5fffffff\n 1 ( 0): 60000000 / 29 -- 60000000-7fffffff\n[selftest] sfr_cfginfo @0x04 = 0x10000408 (expect 0x10000408) -> PASS\n[run] up to 0 cycles\n[done] sim_time = 902496 ps  (0 cycles)\n",
+  "stderr": "",
+  "artifacts": [
+    {
+      "name": "trace.fst",
+      "path": "artifacts/runs/3b44c39e-4c24-46a7-a447-fca846a8ebce/trace.fst",
+      "type": "fst-waveform",
+      "verified": true,
+      "size_bytes": 46301
+    }
+  ],
+  "evidence": "SIMULATED",
+  "validation": {
+    "process_exit_zero": true,
+    "cfginfo_pass": true,
+    "waveform_present": true
+  },
+  "configuration": {
+    "path": "configs/smoke.jsonc",
+    "sha256": "4da5d352ef335c10132c18b08bf61281ec3da6d5d6ef66a0b35ba5564cc4d925",
+    "values": {
+      "fclk_mhz": 700,
+      "trace": {
+        "file": "trace.fst",
+        "format": "fst"
+      },
+      "run": {
+        "max_cycles": 0,
+        "stop_on_trap": false
+      }
+    }
+  },
+  "source_revision": "7e9c9615e1c900c7ddae1c4645a87078b217abc3",
+  "tool_versions": {
+    "verilator": "Verilator 5.052 2026-09-05 rev v5.052",
+    "zig": "0.15.2"
+  },
+  "observed_signals": {}
+}

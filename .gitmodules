@@ -1,0 +1,3 @@
+[submodule "vendor/bio-sim"]
+	path = vendor/bio-sim
+	url = https://github.com/baochip/bio-sim.git

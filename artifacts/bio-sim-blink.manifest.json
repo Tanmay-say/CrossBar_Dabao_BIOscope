@@ -1,0 +1,355 @@
+{
+  "run_id": "ad1120e1-3214-4e7d-b334-20f84e28c15b",
+  "experiment_id": "blink",
+  "experiment_title": "BIO GPIO blink",
+  "mode": "SIMULATION",
+  "adapter": "official-bio-sim",
+  "state": "COMPLETED",
+  "started_at": 1794392615.018874,
+  "finished_at": 1794392615.7319696,
+  "duration_seconds": 0.7131,
+  "exit_code": 0,
+  "stdout_path": "artifacts/runs/ad1120e1-3214-4e7d-b334-20f84e28c15b/stdout.log",
+  "stderr_path": "artifacts/runs/ad1120e1-3214-4e7d-b334-20f84e28c15b/stderr.log",
+  "stdout": "[trace] writing waveform/blink.fst\n[cfg] fclk=350.000 MHz  pclk=fclk/8 (43.750 MHz)\nAddressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_rd_inst.s_ifaces[0].addr_inst\n 0 ( 0): 40000000 / 29 -- 40000000-5fffffff\n 1 ( 0): 60000000 / 29 -- 60000000-7fffffff\nAddressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_wr_inst.s_ifaces[0].addr_inst\n 0 ( 0): 40000000 / 29 -- 40000000-5fffffff\n 1 ( 0): 60000000 / 29 -- 60000000-7fffffff\n[selftest] sfr_cfginfo @0x04 = 0x10000408 (expect 0x10000408) -> PASS\n[mon] watching gpio_out bit 21\n[mon] watching gpio_dir bit 21\n[mon] watching irq\n[load] sw/blink/blink.bin -> core 0 (10 words)\n[poke] sfr @0x008 <= 0x00000000\n[poke] sfr @0x050 <= 0x00010000\n[poke] sfr @0x06c <= 0x00000000\n[start] sfr_ctrl @0x00 <= 0x111 (en=0x1 restart=0x1 clkdiv=0x1)\n[run] up to 10000 cycles (stop on trap)\n[mon] cyc=47 (2226382 ps)  gpio_dir[21]: 0 -> 1\n[mon] cyc=58 (2257820 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=202 (2669372 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=369 (3146658 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=513 (3558210 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=680 (4035496 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=824 (4447048 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=991 (4924334 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=1135 (5335886 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=1302 (5813172 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=1446 (6224724 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=1613 (6702010 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=1757 (7113562 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=1924 (7590848 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=2036 (8002400 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=2203 (8479686 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=2347 (8891238 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=2514 (9368524 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=2658 (9780076 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=2825 (10257362 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=2969 (10668914 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=3136 (11146200 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=3280 (11557752 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=3447 (12035038 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=3591 (12446590 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=3758 (12923876 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=3902 (13335428 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=4037 (13812714 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=4181 (14224266 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=4348 (14701552 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=4492 (15113104 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=4659 (15590390 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=4803 (16001942 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=4970 (16479228 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=5114 (16890780 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=5281 (17368066 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=5425 (17779618 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=5592 (18256904 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=5736 (18668456 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=5903 (19145742 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=6015 (19557294 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=6182 (20034580 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=6326 (20446132 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=6493 (20923418 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=6637 (21334970 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=6804 (21812256 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=6948 (22223808 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=7115 (22701094 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=7259 (23112646 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=7426 (23589932 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=7570 (24001484 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=7737 (24478770 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=7881 (24890322 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=8016 (25367608 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=8160 (25779160 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=8327 (26256446 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=8471 (26667998 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=8638 (27145284 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=8782 (27556836 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=8949 (28034122 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=9093 (28445674 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=9260 (28922960 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=9404 (29334512 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=9571 (29811798 ps)  gpio_out[21]: 0 -> 1\n[mon] cyc=9715 (30223350 ps)  gpio_out[21]: 1 -> 0\n[mon] cyc=9882 (30700636 ps)  gpio_out[21]: 0 -> 1\n[done] sim_time = 31312248 ps  (10000 cycles)\n",
+  "stderr": "\n[run] [############                  ]  40%  4000/10000 cyc  23208 cyc/s  ETA 0s   \n[run] [########################      ]  80%  8000/10000 cyc  22574 cyc/s  ETA 0s   \n[run] [##############################] 100%  10000/10000 cyc  22179 cyc/s  ETA 0s   \n",
+  "artifacts": [
+    {
+      "name": "trace.fst",
+      "path": "artifacts/runs/ad1120e1-3214-4e7d-b334-20f84e28c15b/trace.fst",
+      "type": "fst-waveform",
+      "verified": true,
+      "size_bytes": 107364
+    }
+  ],
+  "evidence": "SIMULATED",
+  "validation": {
+    "process_exit_zero": true,
+    "cfginfo_pass": true,
+    "waveform_present": true,
+    "gpio21_transitions": true
+  },
+  "configuration": {
+    "path": "configs/blink.jsonc",
+    "sha256": "090a0e178d7e1353663e3f0d472d7dcb998640c100f0d49d93ce849111078b2d",
+    "values": {
+      "fclk_mhz": 350,
+      "sw": "blink",
+      "load_core": 0,
+      "registers": [
+        {
+          "name": "sfr_config",
+          "value": "0x000"
+        },
+        {
+          "name": "sfr_qdiv0",
+          "value": "0x00010000"
+        },
+        {
+          "offset": "0x6C",
+          "value": "0x00000000",
+          "port": "sfr"
+        }
+      ],
+      "start": {
+        "cores": [
+          0
+        ],
+        "restart": true,
+        "clkdiv_restart": true
+      },
+      "monitor": [
+        {
+          "signal": "gpio_out",
+          "bit": 21
+        },
+        {
+          "signal": "gpio_dir",
+          "bit": 21
+        },
+        {
+          "signal": "irq"
+        }
+      ],
+      "run": {
+        "max_cycles": 10000,
+        "stop_on_trap": true
+      }
+    }
+  },
+  "source_revision": "7e9c9615e1c900c7ddae1c4645a87078b217abc3",
+  "tool_versions": {
+    "verilator": "Verilator 5.052 2026-09-05 rev v5.052",
+    "zig": "0.15.2"
+  },
+  "observed_signals": {
+    "gpio_dir[21]": [
+      {
+        "from": 0,
+        "to": 1
+      }
+    ],
+    "gpio_out[21]": [
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      },
+      {
+        "from": 1,
+        "to": 0
+      },
+      {
+        "from": 0,
+        "to": 1
+      }
+    ]
+  }
+}

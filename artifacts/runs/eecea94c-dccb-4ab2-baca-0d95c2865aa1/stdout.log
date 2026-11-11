@@ -1,0 +1,11 @@
+[trace] writing waveform/trace.fst
+[cfg] fclk=700.000 MHz  pclk=fclk/16 (43.750 MHz)
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_rd_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+Addressing configuration for axil_crossbar_addr instance TOP.bio_bdma_wrapper.bio_bdma.axil_demux.axil_crossbar_wr_inst.s_ifaces[0].addr_inst
+ 0 ( 0): 40000000 / 29 -- 40000000-5fffffff
+ 1 ( 0): 60000000 / 29 -- 60000000-7fffffff
+[selftest] sfr_cfginfo @0x04 = 0x10000408 (expect 0x10000408) -> PASS
+[run] up to 0 cycles
+[done] sim_time = 902496 ps  (0 cycles)

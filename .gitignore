@@ -1,0 +1,18 @@
+# Local Python environment and generated caches
+.venv/
+.cache/
+__pycache__/
+*.py[cod]
+
+# Frontend dependencies and generated production build
+apps/dashboard/node_modules/
+apps/dashboard/dist/
+
+# BIO-sim generated build products (the upstream source remains in vendor/)
+vendor/bio-sim/build/
+vendor/bio-sim/sw/.zig-cache/
+vendor/bio-sim/sw/zig-out/
+vendor/bio-sim/sw/__pycache__/
+
+# Retain only the three curated real runs in the submission commit
+artifacts/runs/*

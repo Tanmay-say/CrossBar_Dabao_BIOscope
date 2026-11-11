@@ -1,0 +1,3 @@
+# M5StickC Plus2 firmware adapter (prepared)
+
+No framework is selected or firmware claimed built yet. The exact board remains disconnected, and upstream documentation/build dependencies have not been verified in this network-restricted environment. Before implementation, confirm the Plus2-specific board definition, display/buttons APIs and USB transport from the official [M5Stack documentation](https://docs.m5stack.com/en/core/StickC-Plus2). The intended UI is status, experiment selection, run progress, result and error display over a versioned host protocol. No flashing is performed without explicit approval.
