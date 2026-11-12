@@ -6,8 +6,9 @@ BIOScope independently tracks Dabao and the M5Stick-associated CH9102 bridge. A 
 
 | Profile | VID:PID | USB serial | Topology | by-id link | Confidence |
 |---|---|---|---|---|---|
-| Baochip-1x Dabao | `1d50:6196` | `TLZ4A6` | `1-4` | `usb-Baochip_Baochip-1x_TLZ4A6-if00` | High: matching board descriptors, unique serial and observed topology |
-| M5StickC Plus2 association | `1a86:55d4` | `5B1E046678` | `1-3` | `usb-1a86_USB_Single_Serial_5B1E046678-if00` | High association: operator-reported M5Stick connection plus matching bridge arrival; the USB descriptors prove only the QinHeng serial bridge |
+| Baochip-1x Dabao (current) | `1d50:6197` | `[Dabao serial redacted]` | `1-4` | `[redacted Dabao persistent path]` | High descriptor match: product + VID/PID + serial + topology + exact by-id link; firmware/app stage unverified |
+| Baochip-1x Dabao (historical observation) | `1d50:6196` | `[Dabao serial redacted]` | `1-4` | `[redacted Dabao persistent path]` | Historical profile only; not the current enumeration |
+| M5StickC Plus2 association | `1a86:55d4` | `[M5Stick bridge serial redacted]` | `1-3` | `[redacted M5Stick persistent path]` | High association: operator-reported M5Stick connection plus matching bridge arrival; the USB descriptors prove only the QinHeng serial bridge |
 
 Discovery reads `/sys/bus/usb/devices`, interface driver links and `/dev/serial/by-id`. It never opens a tty. USB presence and serial-link availability are independent fields. The dashboard polls `/api/devices` every two seconds; its live process history reports connection transitions and last verification/change times. These timestamps are in-memory and restart with the host. No udev rule or permission change is installed.
 
@@ -21,7 +22,11 @@ BIOScope therefore does not run `m5stick_bridge.py` against the currently instal
 
 ## Dabao / Xous
 
-Official [Xous Baochip documentation](https://github.com/betrusted-io/xous-core/blob/dev/README-baochip.md) documents USB serial console access and `cargo xtask dabao dabao-console` as a build target. The [boot-chain documentation](https://github.com/betrusted-io/xous-core/blob/dev/bao1x-boot/BOOTCHAIN.md) states that boot1's console accepts update files and serial commands. The active stage and console command state on this board have not been verified; BIOScope does not open `/dev/ttyACM0` or send input. The mounted `/run/media/tanmaymanjaro/BAOCHIP` volume remains untouched.
+Official [Xous Baochip documentation](https://github.com/betrusted-io/xous-core/blob/dev/README-baochip.md) documents USB serial console access and `cargo xtask dabao dabao-console` as a build target. The [boot-chain documentation](https://github.com/betrusted-io/xous-core/blob/dev/bao1x-boot/BOOTCHAIN.md) states that boot1's console accepts update files and serial commands. The current device exposes `1d50:6197`, product `Dabao`, CDC ACM interface 02. The operator reported Xous `v0.10.1-43-g8964027ff`; the one completed BIO FIFO0 transaction confirms the console responded on that run. The mounted BAOCHIP volume remains untouched.
+
+Current BIO-sim documentation names Baochip's official [bio-loader](https://github.com/baochip/bio-loader). The loader's documented protocol is implemented by upstream `dabao-console/src/cmds/bio.rs`: it receives base64-encoded 64-byte BIO chunks with CRC, stores them in Xous keystore, and `bio reload` initializes/starts a BIO core. `bio rx <count> <timeout>` reads FIFO output. The direct source reviewed is [bio.rs](https://github.com/betrusted-io/xous-core/blob/dev/apps-dabao/dabao-console/src/cmds/bio.rs); bio-loader revision `a827a3c944c44c1b507e4eab55c76fc67871a8ca`. This documented transport is state-changing; no loader command has been sent. Details and the pin-free probe are in [hardware integration](HARDWARE_INTEGRATION.md).
+
+The Xous source inspected at `99bbfcc15320561f09a97e9ebb5e05a673ca3379` registers the BIO command in `dabao-console`. Its documented `ver xous` command is read-only. `scripts/dabao-readonly-version.py` is a one-shot exact-device query with no user-supplied command parameter; it has not been run because opening USB CDC may reset the board and the current user's `uucp` permissions are absent.
 
 ## Safe future serial session requirements
 
@@ -30,5 +35,5 @@ Before any physical serial session, verify (a) the stable USB identity and topol
 ## Current integration truth
 
 - Functional now: identity-profile matching, persistent by-id correlation, interface/driver inventory, independent Dabao/M5Stick status, disconnect/reconnect reflected by polling, and dashboard Hardware Devices view.
-- Not implemented: physical serial communication, Bruce command execution, Dabao console interaction, BIO execution on silicon, firmware update or flash.
-- Serial opens: **none**. DTR/RTS changes: **none**. Board writes: **none**. `info` response: **not obtained; intentionally stopped before open because reset-free open is unverified and kernel behavior asserts DTR/RTS**.
+- No general-purpose physical serial protocol is implemented. The one fixed Dabao FIFO0 probe completed in the recorded run; the one-shot path is now consumed. Bruce command execution remains unsupported, and firmware update/flash is not part of BIOScope.
+- During the current read-only discovery check, both ports remained unopened and DTR/RTS were unchanged. Historically, the approved Dabao probe opened its exact CDC port once and closed it. The M5Stick `info` response was not obtained: opening it could reset the device, so Bruce remains untouched.

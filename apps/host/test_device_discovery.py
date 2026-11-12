@@ -50,6 +50,17 @@ class DeviceDiscoveryTests(unittest.TestCase):
         self.assertEqual(devices['m5stick']['interfaces'][0]['driver'], 'cdc_acm')
         self.assertFalse(devices['m5stick']['serial_opened'])
 
+    def test_matches_current_dabao_run_mode_descriptors_and_if02_link(self):
+        self.attach('1-4', '1d50', '6197', 'TLZ4A6', 'Dabao')
+        self.attach_port('usb-Baochip_Dabao_TLZ4A6-if02', 'ttyACM0')
+        device = next(d for d in discover(self.usb, self.by_id) if d['id'] == 'dabao')
+        self.assertTrue(device['connected'])
+        self.assertTrue(device['serial_link_available'])
+        self.assertEqual((device['vid'], device['pid']), ('1d50', '6197'))
+        self.assertEqual(device['observed_product'], 'Dabao')
+        self.assertEqual(Path(device['persistent_port']).name, 'usb-Baochip_Dabao_TLZ4A6-if02')
+        self.assertIn('version unverified', device['device_role_hint'])
+
     def test_vid_pid_alone_does_not_identify_a_board(self):
         self.attach('1-3', '1a86', '55d4', 'OTHER', 'USB Single Serial')
         devices = {item['id']: item for item in discover(self.usb, self.by_id)}

@@ -18,6 +18,8 @@ gtkwave artifacts/runs/<run-id>/trace.fst
 
 The BIO-sim `biowave.py` helper is for named firmware demos with matching `.dis` files and the upstream GTKWave layout. Smoke/register tests have no BIO firmware disassembly, so direct GTKWave launch is the appropriate viewer path.
 
+The pin-free Dabao FIFO probe also runs under BIO-sim and creates a genuine FST in its individual run directory. Its waveform is simulation evidence for the compiled target binary only; it is not evidence that Dabao executed the image.
+
 ## Inspect blink GPIO 21
 
 Convert the genuine waveform without modifying it:

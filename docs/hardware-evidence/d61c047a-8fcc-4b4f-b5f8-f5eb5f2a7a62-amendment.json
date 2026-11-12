@@ -1,0 +1,32 @@
+{
+  "run_id": "d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62",
+  "amendment_type": "metadata-correction-and-artifact-integrity-index",
+  "created_at_utc": "2026-11-12T10:22:49Z",
+  "original_manifest_sha256": "87f463031341d4c249049049d8d87b4d47c10449cd23581fc6451a3949ad45f1",
+  "reason": "Generated operation-sequence prose said 63 remaining chunks. The pinned Xous source has 0xF00/64 = 60 chunks total; chunk 0 contains 20 program bytes plus 44 zero bytes, leaving 59 zero chunks. This corrects description only and does not change the executed operations or hardware response.",
+  "corrected_fields": {
+    "operation_sequence[2]": "bio pad (zero-fill 59 remaining chunks; commit full 0xF00-byte image to Xous keystore)"
+  },
+  "artifact_integrity": {
+    "manifest.json": {
+      "path": "artifacts/runs/d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62/manifest.json",
+      "size_bytes": 3777,
+      "sha256": "87f463031341d4c249049049d8d87b4d47c10449cd23581fc6451a3949ad45f1"
+    },
+    "stdout.log": {
+      "path": "artifacts/runs/d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62/stdout.log",
+      "size_bytes": 1034,
+      "sha256": "365e8cb37b353ce87785982a108fbc623b883428310912ffc059a0d51ea5b331"
+    },
+    "stderr.log": {
+      "path": "artifacts/runs/d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62/stderr.log",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "hardware-result.json": {
+      "path": "artifacts/runs/d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62/hardware-result.json",
+      "size_bytes": 654,
+      "sha256": "e23f1b494a30d5c4dce8c9d6e860845a47a16d2cca0f5fc2df2e2a23cdd50bc4"
+    }
+  }
+}

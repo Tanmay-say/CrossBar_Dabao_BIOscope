@@ -15,11 +15,18 @@ _DEVICE_HISTORY = {}
 # event. USB itself exposes the CH9102 bridge identity, not the M5Stack model.
 PROFILES = (
     {
-        'id': 'dabao', 'name': 'Baochip-1x Dabao', 'vid': '1d50', 'pid': '6196',
+        'id': 'dabao', 'name': 'Baochip-1x Dabao', 'vid': '1d50', 'pid': '6197',
         'serial': 'TLZ4A6', 'topology': '1-4', 'vendor': 'OpenMoko, Inc.',
-        'product': 'Baochip-1x', 'identity_basis': 'USB descriptors + serial + topology',
+        'product': 'Dabao', 'identity_basis': 'USB product + VID/PID + serial + topology',
         'confidence': 'high', 'safety': 'CDC console may accept update-capable commands; unopened',
-        'expected_by_id': 'usb-Baochip_Baochip-1x_TLZ4A6-if00',
+        'expected_by_id': 'usb-Baochip_Dabao_TLZ4A6-if02',
+        # Both strings are observed on this board across bootloader and Xous
+        # run-mode enumerations. A variant is accepted only with exact product,
+        # serial, topology, and its matching persistent by-id interface.
+        'usb_variants': (
+            {'vid': '1d50', 'pid': '6197', 'product': 'Dabao', 'expected_by_id': 'usb-Baochip_Dabao_TLZ4A6-if02', 'role_hint': 'run-mode USB profile; Xous/app version unverified'},
+            {'vid': '1d50', 'pid': '6196', 'product': 'Baochip-1x', 'expected_by_id': 'usb-Baochip_Baochip-1x_TLZ4A6-if00', 'role_hint': 'historical bootloader-compatible profile; stage unverified'},
+        ),
     },
     {
         'id': 'm5stick', 'name': 'M5StickC Plus2 (operator-correlated)', 'vid': '1a86', 'pid': '55d4',
@@ -77,18 +84,27 @@ def discover(sys_usb=SYS_USB, by_id_dir=BY_ID, history=None, now=None):
         # Ignore interface, hub and non-device entries lacking USB descriptors.
         vid, pid = _read(dev / 'idVendor'), _read(dev / 'idProduct')
         serial = _read(dev / 'serial')
+        product = _read(dev / 'product')
         if vid is not None and pid is not None:
-            observed[(vid.lower(), pid.lower(), serial, dev.name)] = dev
+            observed[(vid.lower(), pid.lower(), serial, dev.name, product)] = dev
 
     results = []
     for profile in PROFILES:
         item = dict(profile)
-        exact_key = (profile['vid'], profile['pid'], profile['serial'], profile['topology'])
-        dev = observed.get(exact_key)
+        variant = next((v for v in profile.get('usb_variants', ())
+                        if observed.get((v['vid'], v['pid'], profile['serial'], profile['topology'], v['product']))), None)
+        active_vid = variant['vid'] if variant else profile['vid']
+        active_pid = variant['pid'] if variant else profile['pid']
+        if variant:
+            dev = observed.get((active_vid, active_pid, profile['serial'], profile['topology'], variant['product']))
+        else:
+            dev = next((candidate for key, candidate in observed.items()
+                        if key[:4] == (active_vid, active_pid, profile['serial'], profile['topology'])), None)
         by_id_path, tty_path = _port_for(profile['serial'], by_id_dir)
         # Require the persistent link to match the selected board profile and
         # resolve to the kernel's tty. A stale/mismatched link is never trusted.
-        if by_id_path and Path(by_id_path).name != profile['expected_by_id']:
+        expected_by_id = variant['expected_by_id'] if variant else profile['expected_by_id']
+        if by_id_path and Path(by_id_path).name != expected_by_id:
             by_id_path, tty_path = None, None
         # Physical USB presence is based on the complete hardware profile in
         # sysfs. Serial availability is a separate signal (important when the
@@ -107,6 +123,11 @@ def discover(sys_usb=SYS_USB, by_id_dir=BY_ID, history=None, now=None):
                 'last_verified_at': last_verified,
             }
         item.update({
+            'vid': active_vid,
+            'pid': active_pid,
+            'observed_product': _read(dev / 'product') if dev else None,
+            'device_role_hint': variant['role_hint'] if variant and dev else 'USB firmware/application role unknown',
+            'expected_by_id': expected_by_id,
             'connected': connected,
             'usb_present': connected,
             'serial_link_available': serial_available,

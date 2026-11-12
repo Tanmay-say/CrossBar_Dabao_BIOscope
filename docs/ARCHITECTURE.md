@@ -16,7 +16,7 @@ M5Stick Plus2 --USB--> Manjaro PC ------| Python host bridge  |
                                          logs/FST      dashboard
 ```
 
-This is logical architecture, not proof that a device protocol or hardware execution path exists. Both boards are independently USB-connected; no direct board link is assumed. The current Bruce device is not connected to the BIOScope bridge because Linux CDC ACM open behavior can assert DTR/RTS.
+Both boards connect independently to the host; no direct board link is assumed. A one-time approved Dabao FIFO0 probe is now recorded as genuine `HARDWARE_VERIFIED` evidence. The M5Stick still has Bruce and is not connected to BIOScope's operator protocol.
 
 ## Current data flow
 
@@ -27,16 +27,23 @@ flowchart LR
   REG --> SIM[BIO-sim allow-listed adapter]
   SIM --> RTL[Verilator simulation]
   RTL --> OUT[Logs, manifest, FST]
+  REG --> PROBE[Pin-free FIFO probe C source]
+  PROBE --> BIOC[Zig 0.15.2 + official BIO translator]
+  BIOC --> SIM
+  DISC[Read-only USB identity] --> CAP[Capability report plus verified run provenance]
+  CAP --> BIOHW[Fixed, separately approved BIO loader operation]
+  BIOHW -->|one verified FIFO0 read| DAB[Dabao]
+  DAB -->|Xous console response b105c0de| OUT
   OUT --> API
   API --> UI
   STICK[M5Stick Plus2 running Bruce] -. identity discovery only; no serial open .-> API
   FW[Future BIOScope firmware] -. versioned JSONL protocol, mock tested only .-> BRIDGE[Fail-closed M5Stick bridge]
   BRIDGE -. catalog allow-list only .-> ENG[Same experiment engine]
-  DAB[Dabao USB CDC] -. descriptor discovery only .-> API
-  DAB -. hardware console disabled .-> GUARD[No hardware commands or flashes]
+  DAB -. descriptor discovery only; interface 02 .-> API
+  DAB -. no further serial operation; one-shot path consumed .-> GUARD[Hardware writes locked]
 ```
 
-M5Stick transport framing is prepared for a separately installed BIOScope firmware, but the connected device is operator-associated with Bruce firmware. Bruce has a different, broad serial command interface; BIOScope does not open the port or run its bridge against Bruce. The physical opener raises `PhysicalSerialDisabled` after identity preflight; mock transports exercise the bounded protocol and allow-listed catalog handler. Dabao console remains unopened because boot1's documented serial interface can accept updates and commands, while the active stage is unverified. USB identity discovery uses exact VID/PID + serial + physical topology plus the persistent by-id link and does not open either port.
+M5Stick transport framing is prepared for a separately installed BIOScope firmware, but the connected device is operator-associated with Bruce firmware. Bruce has a different, broad serial command interface; BIOScope does not open the M5Stick port or run its bridge against Bruce. The M5Stick opener raises `PhysicalSerialDisabled` after identity preflight; mock transports exercise the bounded protocol and allow-listed catalog handler. The Dabao's one approved console session is recorded in the physical run manifest and the port is closed. Background USB identity discovery uses exact VID/PID + serial + physical topology plus the persistent by-id link and does not open either port.
 
 ## Components
 - BIO-sim adapter: wraps official upstream build/run scripts, captures command, exit code, logs, versions, revision and artifacts.
@@ -47,7 +54,9 @@ M5Stick transport framing is prepared for a separately installed BIOScope firmwa
 - M5Stick UI: status, host link, experiment menu, progress, result, errors.
 - Device discovery: read-only sysfs/interface-driver plus `/dev/serial/by-id` inspection; per-profile matching requires VID/PID, unique USB serial and recorded topology. Dashboard status refreshes every 2 seconds.
 
-The current host API is `apps/host/server.py`; the typed React dashboard is `apps/dashboard/src/`. The simulator adapter supports only fixed catalog entries/configs (`smoke.jsonc`, `blink.jsonc`) and never accepts arbitrary commands. Runs retain a JSON manifest, separate stdout/stderr and copied artifacts under `artifacts/runs/<run_id>/`. Current M5Stick frames are a prepared protocol sketch; there is not yet an active host serial bridge.
+The current host API is `apps/host/server.py`; `/api/hardware/capabilities` presents identity and upstream path state without opening a port. The typed React dashboard is `apps/dashboard/src/`. The simulator adapter supports fixed catalog entries/configs and never accepts arbitrary commands. The pin-free FIFO probe is compiled by `scripts/build-dabao-bio-probe.py`, then run in BIO-sim as separate `SIMULATED` evidence. Runs retain a JSON manifest, separate stdout/stderr and copied artifacts under `artifacts/runs/<run_id>/`. Current M5Stick frames are a prepared protocol sketch; there is not yet an active host serial bridge.
+
+The physical Dabao path was exercised once with explicit operator approval. Xous reported `v0.10.1-43-g8964027ff`, tied to inspected source commit `8964027fff25f8b85d3d3c63933d365ac7614523`. The official BIO console accepted the 20-byte probe, committed a padded 0xF00-byte image, reloaded the core, and returned `b105c0de` from FIFO0. Run `d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62` records the result, logs, hardware identity and source hashes. The operation replaced the previous stored BIO program; no documented readback/recovery command exists. It touched no GPIO or BAOCHIP update volume. Further hardware runs remain behind the fixed CLI and separate approval.
 
 ## Suggested repository layout
 ```text

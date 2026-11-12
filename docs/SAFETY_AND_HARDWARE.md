@@ -22,9 +22,11 @@ Before approval, state exact command, working directory, target identity, expect
 ## Current serial boundary (2026-11-12)
 
 - Both USB identities are matched using VID/PID, unique USB serial and topology; the M5Stick association is operator-correlated and USB descriptors identify its QinHeng bridge only.
-- The M5Stick persistent link is `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B1E046678-if00`; it resolves to the CH9102 USB bridge. The host bridge performs descriptor preflight but deliberately raises `PhysicalSerialDisabled` before creating a serial object.
+- The M5Stick persistent link is `/dev/serial/by-id/[redacted M5Stick persistent path]`; it resolves to the CH9102 USB bridge. The host bridge performs descriptor preflight but deliberately raises `PhysicalSerialDisabled` before creating a serial object.
 - Linux `cdc_acm`/TTY open asserts modem lines; PySerial applies DTR/RTS after open. Since reset-free opening is not proven, Bruce `info` was not sent. No serial connection or device communication is claimed.
-- Dabao `/dev/ttyACM0` and its mounted update volume were not accessed.
+- Current Dabao profile: `1d50:6197`, product `Dabao`, CDC ACM interface 02, matched with serial, topology and its exact persistent link (unique values redacted in public prose). Xous `v0.10.1-43-g8964027ff` and the one completed FIFO0 operation are recorded in the physical run. Historical `1d50:6196` remains a separate bootloader-compatible observation.
+- Official `bio-loader` is a state-changing interface: it persists uploaded BIO image chunks in the Xous application keystore and `bio reload` starts a BIO core. No readback/backup of an existing stored BIO image has been verified. The loader opens CDC without a reset-free line-control guarantee. Dabao CDC was opened once for the approved physical run and then closed; it was not opened during this final pass.
+- The mounted BAOCHIP update volume was not queried for contents, opened, copied, changed or unmounted.
 
 ## Evidence labels
 - NOT RUN: no attempt.

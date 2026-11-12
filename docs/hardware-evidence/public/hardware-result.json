@@ -1,0 +1,29 @@
+{
+  "evidence": "HARDWARE_VERIFIED",
+  "expected": {
+    "fifo": 0,
+    "value": "0xB105C0DE"
+  },
+  "actual": {
+    "value": "0xB105C0DE",
+    "matches_expected": true
+  },
+  "captured_fifo_words": [
+    "0xB105C0DE"
+  ],
+  "xous_version": "v0.10.1-43-g8964027ff",
+  "device": {
+    "profile_id": "dabao",
+    "vid": "1d50",
+    "pid": "6197",
+    "product": "Dabao",
+    "serial": "[REDACTED]",
+    "topology": "[REDACTED]",
+    "persistent_port": "[REDACTED]",
+    "observed_linux_node": "[REDACTED]"
+  },
+  "xous_code_committed": true,
+  "core_reload_succeeded": true,
+  "xous_commit_attempted": true,
+  "failure": null
+}

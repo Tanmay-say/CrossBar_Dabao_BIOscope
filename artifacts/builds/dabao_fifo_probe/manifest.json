@@ -1,0 +1,17 @@
+{
+  "experiment_id": "dabao-fifo-probe",
+  "evidence": "COMPILE_ONLY",
+  "built_at": "2026-11-12T09:28:08Z",
+  "source": "experiments/bio/dabao_fifo_probe/main.c",
+  "source_sha256": "f4d25b67b5f7481cc1447cfb8b346c458500022583e7d74b4c66c7fbbc119ac2",
+  "bio_sim_revision": "7e9c9615e1c900c7ddae1c4645a87078b217abc3",
+  "zig_version": "0.15.2",
+  "build_command": "python -m ziglang cc -S <BIO-sim RV32IMC/reserved-register flags>; upstream clang2rustasm.py --emit-binary",
+  "target": "riscv32-freestanding; BIO-sim official C-to-Rust-asm translator and errata/link check",
+  "program_effect": "Push one 0xB105C0DE word to BIO FIFO0, then wait_quantum forever; no GPIO/pads touched.",
+  "binary": "artifacts/builds/dabao_fifo_probe/dabao_fifo_probe.bin",
+  "binary_size_bytes": 20,
+  "binary_sha256": "cfc0502faf630bae4088e06131f23594d1b14928549743eb774d396b88e6b69b",
+  "errata_validation": "PASS (upstream converter post-link scan)",
+  "hardware_execution": "NOT RUN"
+}

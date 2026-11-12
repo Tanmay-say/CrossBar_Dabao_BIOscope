@@ -35,7 +35,7 @@ Approved install executed by user: `sudo pacman -S --needed verilator`. Metadata
 4. Run `make build`, then `./simulate configs/smoke.jsonc`; capture stdout/stderr, exit code, expected register check and FST path.
 5. Verify actual Zig pin/method before blink build.
 
-## Actual baseline evidence
+## Initial baseline evidence (historical; superseded by the update below)
 
 - Build command: `make build` in `vendor/bio-sim`; exit 0 with non-fatal upstream RTL warnings. Required JSON header downloaded by the upstream Makefile, nlohmann/json 3.11.3; SHA-256 `9bea4c8066ef4a1c206b2be5a36302f8926f7fdc6087af5d20b417d0cf103ea6`.
 - Run command: `./simulate configs/smoke.jsonc`; exit 0.
@@ -47,3 +47,17 @@ Approved install executed by user: `sudo pacman -S --needed verilator`. Metadata
 - Blink run: `./simulate configs/blink.jsonc`, exit 0; 10,000 cycles; `gpio_dir[21]` becomes output and `gpio_out[21]` changes repeatedly. FST size 107,364 bytes.
 - GTKWave official Manjaro package metadata: `extra/gtkwave 3.3.128-1`, 2.37 MiB download / 3.98 MiB installed; package includes `fst2vcd`, `fstminer`, `gtkwave`, and example `.fst` files. This confirms FST format support. Installation has not completed because sudo authentication timed out; the user is running `sudo pacman -S --needed gtkwave`. FST artifacts and signal transitions are already exposed through the dashboard; GUI opening remains pending.
 - Dabao udev confirms `/dev/ttyACM0` and by-id link. Another USB `1a86:55d4` USB-UART appeared on `/dev/ttyACM1`; board identity is unverified. Neither was opened.
+
+## Hardware-target probe update (2026-11-12)
+
+The table above records the earlier baseline and is superseded for current availability by this update: Zig 0.15.2 is present in project `.venv` and GTKWave 3.3.128 was later installed by the user from pacman and previously validated with FST loads. Verilator 5.052 remains installed. No dependencies were installed during this hardware investigation.
+
+- Current BIO-sim revision: `7e9c9615e1c900c7ddae1c4645a87078b217abc3`.
+- Official `bio-loader` source inspected at commit `a827a3c944c44c1b507e4eab55c76fc67871a8ca` (temporary read-only clone under `/tmp/bio-loader-inspect`; not added as a duplicate repo).
+- Added `experiments/bio/dabao_fifo_probe/main.c`: `push_fifo0(0xB105C0DEu)` then `wait_quantum()` forever; no GPIO or pin setup.
+- Build command: `python3 scripts/build-dabao-bio-probe.py`; exit 0. The script runs project `.venv/bin/python -m ziglang cc -S` with BIO-sim's `riscv32-freestanding`, `generic_rv32+zmmul+c`, and reserved x16–x31 flags, then the upstream `sw/clang2rustasm.py --emit-binary` pipeline. Upstream post-link errata validation: PASS; 20-byte image. Build manifest `artifacts/builds/dabao_fifo_probe/manifest.json`; image SHA-256 `cfc0502faf630bae4088e06131f23594d1b14928549743eb774d396b88e6b69b`.
+- The allow-listed `dabao-fifo-probe` simulation loads that exact image, runs BIO core 0, drains FIFO0, and validates `0xb105c0de`; it also captures a genuine run FST. Evidence is `SIMULATED`, never physical. Details go in each run manifest.
+- Upstream physical workflow uses `bio-loader` at 1,000,000 baud and the Xous console `bio` command. Source inspection confirms code is written to application keystore and `bio reload` starts the core. `bio rx <count> <timeout>` emits FIFO values to Xous logs. No installed Xous/app version was queried; no port was opened and no command sent.
+- Physical upload can replace an existing stored BIO image. No verified backup/readback path was found. The interface's CDC open/reset behavior is unverified. Physical execution is disabled pending explicit operator approval; no GPIO experiment is prepared because board-level safe observation is unverified.
+- Official Xous source sparse snapshot at `99bbfcc15320561f09a97e9ebb5e05a673ca3379` confirms `dabao-console` registers `bio` in its command table and implements documented read-only `ver xous`. It confirms BIO HAL/API service methods (`init_core`, resource claims, start state) and Dabao application keystore ranges 0–122 for stored BIO configuration and code. `cargo`, `rustc`, and `rustup` are absent on this host, so a local Xous target build was not attempted; no Rust/system dependencies were installed.
+- Prepared `scripts/dabao-readonly-version.py`; exact profile check and one-command behavior are unit-tested with a fake transport. It has not been run. Running it requires operator approval to open `/dev/serial/by-id/[redacted Dabao persistent path]`; tty permissions are `root:uucp` 0660 and the active user lacks `uucp`.

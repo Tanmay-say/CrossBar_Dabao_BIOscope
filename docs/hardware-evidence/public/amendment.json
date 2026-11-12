@@ -1,0 +1,22 @@
+{
+  "run_id": "d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62",
+  "amendment_type": "public-redaction-and-metadata-correction",
+  "source_local_manifest_sha256": "87f463031341d4c249049049d8d87b4d47c10449cd23581fc6451a3949ad45f1",
+  "correction": "The source manifest description said 63 remaining chunks; the pinned Xous source has 60 chunks in 0xF00 bytes total, so 59 are zero-filled after chunk 0. Public manifest wording is corrected.",
+  "redactions": [
+    "USB serial number",
+    "USB topology",
+    "persistent by-id path",
+    "Linux tty node",
+    "reusable approval phrase",
+    "echoed Base64 program chunk"
+  ],
+  "preserved_facts": [
+    "run id",
+    "HARDWARE_VERIFIED evidence class",
+    "expected and actual FIFO0 values",
+    "Xous source revision",
+    "BIO source and binary hashes",
+    "operation outcome"
+  ]
+}

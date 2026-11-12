@@ -15,6 +15,11 @@
 .safety-card{display:grid;gap:7px;background:#0b131a;border:1px solid #263843;border-radius:8px;padding:12px;margin:17px 0 12px;color:#d7e5eb;font-size:11px}
 .safety-card b{color:var(--orange)}
 .safety-card span{color:var(--muted)}
+.hardware-proof{border-color:#3b6e55;background:linear-gradient(115deg,#10221e,#0d171b);color:#e5f5eb}
+.hardware-proof b{color:var(--lime);font:600 11px 'DM Mono',monospace;letter-spacing:.06em}
+.hardware-proof strong{font:700 23px 'DM Mono',monospace;color:var(--lime)}
+.evidence-banner{cursor:pointer;display:grid;gap:8px;margin:14px 0}
+.evidence-banner:hover{border-color:var(--lime)}
 .safety{margin-top:22px}
 .refresh-note{margin:12px 2px;font-size:10px}
 @media(max-width:920px){.hardware-grid{grid-template-columns:1fr}.sidebar{display:block}.sidebar nav{display:flex;flex-wrap:wrap;margin-top:17px}.sidebar nav .navitem{width:auto}.sidebar footer{display:none}}

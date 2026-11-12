@@ -1,0 +1,94 @@
+{
+  "run_id": "d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62",
+  "experiment_id": "dabao-fifo-probe",
+  "experiment_title": "Dabao BIO FIFO0 sentinel probe",
+  "mode": "HARDWARE",
+  "adapter": "official-xous-bio-loader-protocol",
+  "state": "COMPLETED",
+  "hardware_state": "HARDWARE_VERIFIED",
+  "evidence": "HARDWARE_VERIFIED",
+  "started_at": 1794478351.8867183,
+  "started_at_utc": "2026-11-12T10:12:31.886Z",
+  "finished_at": 1794478352.1825492,
+  "finished_at_utc": "2026-11-12T10:12:32.182Z",
+  "duration_seconds": 0.2958,
+  "exit_code": 0,
+  "hardware_profile": {
+    "profile_id": "dabao",
+    "vid": "1d50",
+    "pid": "6197",
+    "product": "Dabao",
+    "serial": "[REDACTED]",
+    "topology": "[REDACTED]",
+    "persistent_port": "[REDACTED]",
+    "observed_linux_node": "[REDACTED]"
+  },
+  "xous_version": "v0.10.1-43-g8964027ff",
+  "xous_source_revision": "8964027fff25f8b85d3d3c63933d365ac7614523",
+  "experiment_source": "experiments/bio/dabao_fifo_probe/main.c",
+  "experiment_source_sha256": "f4d25b67b5f7481cc1447cfb8b346c458500022583e7d74b4c66c7fbbc119ac2",
+  "bio_binary": "artifacts/builds/dabao_fifo_probe/dabao_fifo_probe.bin",
+  "bio_binary_size_bytes": 20,
+  "bio_binary_sha256": "cfc0502faf630bae4088e06131f23594d1b14928549743eb774d396b88e6b69b",
+  "bio_sim_source_revision": "7e9c9615e1c900c7ddae1c4645a87078b217abc3",
+  "bio_loader_source_revision": "a827a3c944c44c1b507e4eab55c76fc67871a8ca",
+  "tool_versions": {
+    "baud": 1000000,
+    "data_bits": 8,
+    "parity": "N",
+    "stop_bits": 1
+  },
+  "operation_sequence": [
+    "bio ready (console echo off; no persistent setting write)",
+    "bio <base64(chunk-0)> (stage index 0; 64-byte code area; 44 zero pad bytes; CRC32)",
+    "bio pad (zero-fill 59 remaining chunks; commit full 0xF00-byte image to Xous keystore)",
+    "bio reload (initialize and start BIO core)",
+    "bio rx 1 5 (read one FIFO0 word)",
+    "close exact Dabao CDC port"
+  ],
+  "upload_protocol": {
+    "decoded_chunk_bytes": 70,
+    "chunk_index": 0,
+    "payload_bytes": 64,
+    "program_bytes": 20,
+    "program_padding_bytes": 44,
+    "remaining_zero_fill_chunks": 59,
+    "crc32_be": "0xFBAD720D",
+    "base64_sha256": "d8ceb64f0ee11ffa81aaf004125553ed34c026530697e0d17623b7ff3ec5d484"
+  },
+  "configuration": {
+    "bio_clock_command_sent": false,
+    "pin_configuration_command_sent": false,
+    "stored_clock_behavior": "Xous reload uses the stored 1..350MHz BIO clock, else defaults to 350MHz.",
+    "stored_pin_behavior": "Existing stored pin list is retained and reapplied by reload; no readback was found.",
+    "program_gpio_calls": 0
+  },
+  "expected_result": {
+    "fifo": 0,
+    "value": "0xB105C0DE"
+  },
+  "captured_fifo_words": [
+    "0xB105C0DE"
+  ],
+  "actual_result": {
+    "value": "0xB105C0DE",
+    "matches_expected": true
+  },
+  "xous_code_committed": true,
+  "xous_commit_attempted": true,
+  "bio_core_reload_succeeded": true,
+  "failure": null,
+  "approval": {
+    "approved": true,
+    "required_phrase": "[REDACTED]"
+  },
+  "known_limitations": [
+    "Xous BIO console provides no readback command for a previously stored BIO image.",
+    "A valid prior BIO program may already be running; staging does not stop it until bio reload.",
+    "The existing pin configuration cannot be read through the documented BIO command interface and is reapplied by reload.",
+    "This program emits no GPIO instructions; hardware run proves FIFO0 only, not a physical pad observation."
+  ],
+  "stdout_path": "stdout.log",
+  "stderr_path": "stderr.log",
+  "result_path": "hardware-result.json"
+}

@@ -1,0 +1,27 @@
+{
+  "run_id": "d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62",
+  "classification": "HARDWARE_VERIFIED",
+  "privacy": "sanitized public copy; original local run directory remains unchanged and is git-ignored",
+  "files": {
+    "amendment.json": {
+      "size_bytes": 827,
+      "sha256": "0730346e1e09d391c6cf8e547b2554fa20fd6a9aa7d81ecced5819d227cfa8a1"
+    },
+    "hardware-result.json": {
+      "size_bytes": 626,
+      "sha256": "f355468872777258dec90c275feb284a8b405b231108c127cd3f3e4331eb7977"
+    },
+    "manifest.json": {
+      "size_bytes": 3557,
+      "sha256": "8721e3bbc7302e3e70229655c893bb747da08a5776b6ae4bb93efc531170045e"
+    },
+    "stderr.log": {
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout.log": {
+      "size_bytes": 972,
+      "sha256": "650d9c46bb60019d9a573f196c6be623d2059ec2c86c9d978e6e332e79a24d7d"
+    }
+  }
+}

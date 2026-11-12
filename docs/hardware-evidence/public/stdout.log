@@ -1,0 +1,20 @@
+bio ready
+[console] bio ready
+OK
+[console] bio [REDACTED: uploaded program chunk]
+OK
+[console] bio pad
+SUCCESS
+bio reload
+[console] bio reload
+INFO:dabao_console::cmds::bio: code: [37, 11, 0, 0, 9, a0, 37, c5, 5, b1, 13, 5, e5, d, 2a, 88] (apps-dabao/dabao-console/src/cmds/bio.rs:204)
+INFO:dabao_console::cmds::bio: Actual quantum frequency: 350000000Hz (apps-dabao/dabao-console/src/cmds/bio.rs:214)
+INFO:dabao_console::cmds::bio: Finalized pin spec [] (apps-dabao/dabao-console/src/cmds/bio.rs:223)
+INFO:dabao_console::cmds::bio: Set core to run ResourceGrant { grant_id: 1, cores: [Core0], fifos: [Fifo0], static_pins: [], dynamic_pin_count: 17 } (apps-dabao/dabao-console/src/cmds/bio.rs:242)
+BIO load successful
+bio rx 1 5
+[console] bio rx 1 5
+INFO:bao1x_hal_service::servers::bio: DBG_Core0: 10 (services/bao1x-hal-service/src/servers/bio.rs:70)
+INFO:dabao_console::cmds::bio: b105c0de (apps-dabao/dabao-console/src/cmds/bio.rs:451)
+OK
+[host] Dabao CDC port closed

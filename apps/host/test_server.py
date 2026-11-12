@@ -1,7 +1,7 @@
 import unittest, json, threading, urllib.request, socket, os
 from unittest.mock import patch, Mock
 from http.server import ThreadingHTTPServer
-from server import execute, Handler, launch_waveform
+from server import execute, Handler, launch_waveform, load_run_manifest
 
 class MockAdapterTests(unittest.TestCase):
     def test_success(self):
@@ -16,6 +16,21 @@ class MockAdapterTests(unittest.TestCase):
     def test_artifact_missing(self): self.assertEqual(execute({'omit_artifact':True})['artifacts'],[])
     def test_wrong_mode(self):
         with self.assertRaises(ValueError): execute({'mode':'HARDWARE'})
+
+    def test_hardware_mode_is_not_executable_through_api_engine(self):
+        with self.assertRaisesRegex(PermissionError, 'history-only'):
+            execute({'experiment_id':'dabao-fifo-probe','mode':'HARDWARE'})
+
+    def test_physical_run_history_contains_verified_target_response_and_logs(self):
+        run_id='d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62'
+        from server import RUNS
+        run=load_run_manifest(RUNS/run_id)
+        self.assertEqual(run['mode'],'HARDWARE')
+        self.assertEqual(run['evidence'],'HARDWARE_VERIFIED')
+        self.assertEqual(run['actual_result']['value'],'0xB105C0DE')
+        self.assertIn('b105c0de',run['stdout'].lower())
+        self.assertIn('59 remaining chunks',run['operation_sequence'][2])
+        self.assertTrue(any(a['name']=='hardware-result.json' and a['sha256'] for a in run['artifacts']))
 
     def test_api_flow(self):
         try: srv=ThreadingHTTPServer(('127.0.0.1',0),Handler)
@@ -32,9 +47,40 @@ class MockAdapterTests(unittest.TestCase):
                 self.assertEqual({d['id'] for d in inventory},{'dabao','m5stick'})
                 self.assertTrue(all('serial' in d and 'topology' in d for d in inventory))
                 self.assertTrue(all(d['serial_opened'] is False for d in inventory))
+            with urllib.request.urlopen(base+'/api/hardware/capabilities') as r:
+                caps=json.load(r)
+                self.assertFalse(caps['physical_execution_enabled'])
+                self.assertEqual(caps['last_verified_run']['actual'], '0xB105C0DE')
+                self.assertIn('v0.10.1-43', caps['hardware_firmware'])
+            with urllib.request.urlopen(base+'/api/experiments') as r:
+                catalog=json.load(r)
+                self.assertIn('dabao-fifo-probe', {item['id'] for item in catalog})
+                physical=next(item for item in catalog if item['id']=='dabao-fifo-probe')
+                self.assertIn('HARDWARE',physical['modes'])
+                self.assertTrue(physical['requires_manual_approval'])
             req=urllib.request.Request(base+'/api/runs',data=json.dumps({'mode':'MOCK'}).encode(),headers={'Content-Type':'application/json'},method='POST')
             with urllib.request.urlopen(req) as r: self.assertEqual(json.load(r)['mode'],'MOCK')
+            req=urllib.request.Request(base+'/api/runs',data=json.dumps({'experiment_id':'dabao-fifo-probe','mode':'SIMULATION'}).encode(),headers={'Content-Type':'application/json'},method='POST')
+            with urllib.request.urlopen(req) as r:
+                probe=json.load(r)
+                self.assertEqual(probe['evidence'],'SIMULATED')
+                self.assertTrue(probe['validation']['fifo0_sentinel_received'])
+                with urllib.request.urlopen(base+f"/api/runs/{probe['run_id']}/artifacts/trace.fst") as artifact:
+                    self.assertEqual(len(artifact.read()),probe['artifacts'][0]['size_bytes'])
             with urllib.request.urlopen(base+'/api/runs') as r: self.assertTrue(json.load(r))
+            physical_id='d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62'
+            with urllib.request.urlopen(base+f'/api/runs/{physical_id}') as r:
+                physical=json.load(r)
+                self.assertEqual(physical['evidence'],'HARDWARE_VERIFIED')
+                self.assertEqual(physical['actual_result']['value'],'0xB105C0DE')
+                self.assertIn('b105c0de',physical['stdout'].lower())
+            for artifact_name in ('hardware-result.json','manifest-amendment.json'):
+                with urllib.request.urlopen(base+f'/api/runs/{physical_id}/artifacts/{artifact_name}') as r:
+                    self.assertTrue(r.read())
+            request=urllib.request.Request(base+'/api/runs',data=json.dumps({'experiment_id':'dabao-fifo-probe','mode':'HARDWARE'}).encode(),headers={'Content-Type':'application/json'},method='POST')
+            with self.assertRaises(urllib.error.HTTPError) as blocked: urllib.request.urlopen(request)
+            self.assertEqual(blocked.exception.code,403)
+            blocked.exception.close()
             real=execute({'experiment_id':'blink','mode':'SIMULATION'})
             with urllib.request.urlopen(base+f"/api/runs/{real['run_id']}/artifacts/{real['artifacts'][0]['name']}") as r:
                 self.assertEqual(len(r.read()),real['artifacts'][0]['size_bytes'])
@@ -53,6 +99,14 @@ class MockAdapterTests(unittest.TestCase):
         r=execute({'experiment_id':'blink','mode':'SIMULATION'})
         self.assertEqual(r['evidence'],'SIMULATED'); self.assertTrue(r['validation']['gpio21_transitions'])
         self.assertGreater(r['artifacts'][0]['size_bytes'],0)
+
+    def test_dabao_target_probe_simulation_if_built(self):
+        from bio_sim import available
+        if not available('dabao-fifo-probe'): self.skipTest('BIO target probe binary has not been built')
+        r=execute({'experiment_id':'dabao-fifo-probe','mode':'SIMULATION'})
+        self.assertEqual(r['evidence'],'SIMULATED')
+        self.assertTrue(r['validation']['fifo0_sentinel_received'])
+        self.assertIn('0xb105c0de',r['stdout'].lower())
 
     def test_waveform_launcher(self):
         from bio_sim import available
