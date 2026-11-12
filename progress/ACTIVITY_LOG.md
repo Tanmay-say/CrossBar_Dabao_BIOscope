@@ -9,6 +9,7 @@
 - Final backend suite: 33 tests passed. TypeScript/Vite production build passed; Python compilation and `git diff --check` passed. No hardware execution was performed.
 - Tried headless Firefox screenshot capture as requested; captures showed API offline or blank even when the local API was running in a separate execution context. Discarded all such images; screenshot index records none rather than presenting false evidence.
 - No Git commit/push, package install, serial open, firmware write, or BAOCHIP volume access occurred.
+- After the above validation, committed the reviewed implementation as `8b1ec97` (`Complete BIOScope hardware safety integration`) and pushed it to `origin/main` for the submission. The BIO-sim submodule working tree was not included.
 
 ## 2026-11-11 — Manjaro starter kit prepared
 - Consolidated Dabao + M5Stick requirements and constraints.
