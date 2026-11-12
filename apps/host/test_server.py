@@ -27,6 +27,11 @@ class MockAdapterTests(unittest.TestCase):
             asset=page.split('src="')[1].split('"')[0]
             with urllib.request.urlopen(base+asset) as r: self.assertIn('Experiment control room',r.read().decode())
             with urllib.request.urlopen(base+'/api/experiments') as r: self.assertTrue(json.load(r))
+            with urllib.request.urlopen(base+'/api/devices') as r:
+                inventory=json.load(r)
+                self.assertEqual({d['id'] for d in inventory},{'dabao','m5stick'})
+                self.assertTrue(all('serial' in d and 'topology' in d for d in inventory))
+                self.assertTrue(all(d['serial_opened'] is False for d in inventory))
             req=urllib.request.Request(base+'/api/runs',data=json.dumps({'mode':'MOCK'}).encode(),headers={'Content-Type':'application/json'},method='POST')
             with urllib.request.urlopen(req) as r: self.assertEqual(json.load(r)['mode'],'MOCK')
             with urllib.request.urlopen(base+'/api/runs') as r: self.assertTrue(json.load(r))

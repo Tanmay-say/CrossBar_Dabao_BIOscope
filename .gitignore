@@ -7,6 +7,7 @@ __pycache__/
 # Frontend dependencies and generated production build
 apps/dashboard/node_modules/
 apps/dashboard/dist/
+firmware/m5stick-plus2/.pio/
 
 # BIO-sim generated build products (the upstream source remains in vendor/)
 vendor/bio-sim/build/
@@ -16,3 +17,4 @@ vendor/bio-sim/sw/__pycache__/
 
 # Retain only the three curated real runs in the submission commit
 artifacts/runs/*
+graphify-out/

@@ -19,6 +19,13 @@ Flashing, erase, bootloader changes, update-volume writes, state-changing serial
 
 Before approval, state exact command, working directory, target identity, expected changes, risk and recovery.
 
+## Current serial boundary (2026-11-12)
+
+- Both USB identities are matched using VID/PID, unique USB serial and topology; the M5Stick association is operator-correlated and USB descriptors identify its QinHeng bridge only.
+- The M5Stick persistent link is `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B1E046678-if00`; it resolves to the CH9102 USB bridge. The host bridge performs descriptor preflight but deliberately raises `PhysicalSerialDisabled` before creating a serial object.
+- Linux `cdc_acm`/TTY open asserts modem lines; PySerial applies DTR/RTS after open. Since reset-free opening is not proven, Bruce `info` was not sent. No serial connection or device communication is claimed.
+- Dabao `/dev/ttyACM0` and its mounted update volume were not accessed.
+
 ## Evidence labels
 - NOT RUN: no attempt.
 - BLOCKED: cannot proceed.

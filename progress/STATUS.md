@@ -1,33 +1,38 @@
 # BIOScope Status
 
-**Date:** 2026-11-11  
-**State:** Official BIO-sim smoke, register-inspection and blink simulations pass; React dashboard runs against the host API with genuine FST artifacts.
+**Updated:** 2026-11-12
+**Current milestone:** Three official BIO-sim experiments, genuine FST artifacts, GTKWave launch, React dashboard and read-only hardware profile discovery are integrated. Both USB serial ports remain unopened.
 
-## Latest waveform and protocol milestone
-- GTKWave Analyzer 3.3.128 verified; smoke, register-inspection and blink FSTs opened successfully (FSTLOAD reported 13,485 facilities, 5,001 signals and 8,484 aliases per file).
-- Blink GPIO 21 FST edges verified against simulator logs; dashboard now has an Open in GTKWave action with missing-display/viewer handling.
-- Host M5Stick JSON framing/request handler prepared and unit tested; no physical serial link opened.
-- Latest tests: 20 backend/API/simulator/protocol tests pass; Python compile and React/TypeScript build pass.
+## Verified working
 
-## Functional now
-- Start host with `python3 apps/host/server.py`; dashboard at `http://127.0.0.1:8765`.
-- API health, experiment catalog, read-only USB sysfs inventory, run creation/history/detail.
-- Mock orchestration with strict input/mode checks, logs, exit code, structured manifest and clearly marked placeholder artifact.
-- Official BIOScope simulation adapter invokes only upstream `configs/smoke.jsonc`; captures stdout/stderr, exit status, run metadata and FST.
-- Official upstream blink built using local Zig 0.15.2 (`-Demit-listing=false`, because optional RISC-V objdump is absent), then ran at 10,000 cycles with repeated GPIO 21 edges.
-- Manjaro GTKWave package compatibility confirmed from official Arch package file list (FST reader/converter/examples). Package install is still awaiting sudo authentication; viewer has not yet been opened.
-- React + TypeScript + Vite dashboard has production build and serves via host API. Includes selectable MOCK/SIMULATION, run history, validation/signal transitions, metadata and artifact download.
-- `python3 -m unittest discover -s apps/host -v`: 10 passing tests; `py_compile` and `npm run build` pass.
+- Official BIO-sim source at `7e9c9615e1c900c7ddae1c4645a87078b217abc3`; smoke, register inspection (`sfr_cfginfo == 0x10000408`) and blink pass in simulation.
+- Blink simulation emits genuine FST; GPIO 21 transitions were correlated with logs and loaded in GTKWave.
+- Host API and React/TypeScript/Vite dashboard expose experiment runs, logs, manifests, validation and artifacts.
+- M5Stick Plus2 BIOScope firmware compiles with the documented PlatformIO target (compile-only; it was not flashed).
+- New USB profile matcher uses VID/PID + USB serial + USB topology and exact `/dev/serial/by-id` link. The dashboard has a separate Hardware Devices page and polls device inventory every 2 seconds.
+- New tests cover exact-profile match, VID/PID-only rejection, topology mismatch, USB presence with inaccessible serial link, and disconnect/reconnect transitions. Device API timestamps describe current-process history and reset after host restart.
+- Bruce serial workflow researched from official documentation. The documented `info` command at 115200 8N1 was not sent: Linux CDC ACM/TTY opening asserts DTR/RTS, PySerial applies line states after open, and ModemManager is active. Reset-free opening cannot be guaranteed, so the fail-closed bridge never constructs a serial object.
+- Full M5Stick integration assessment and a preserve-Bruce/recovery proposal are documented in `docs/M5STICK_FIRMWARE_CHANGE_PROPOSAL.md`.
+- Xous USB console/build documentation reviewed. Boot1 serial console can accept commands and update files; active stage is unverified, so console remains unopened.
 
-## Verified boundaries
-- Verilator 5.052 installed. Kernel previously identified Dabao as Baochip-1x (`1d50:6196`, serial `TLZ4A6`) and `/dev/ttyACM0`; adapter only reads sysfs descriptors and does not open serial.
-- `BAOCHIP` stays untouched; no physical execution or firmware changes.
-- M5Stick remains disconnected; exact Plus2 firmware framework is unverified and not built.
-- BIO-sim source commit: `7e9c9615e1c900c7ddae1c4645a87078b217abc3`. Smoke and register inspection pass cfginfo `0x10000408`; blink shows GPIO 21 transitions. Genuine FSTs: 46,301-byte smoke, 107,364-byte blink.
-- Zig 0.15.2 installed project-locally only. GTKWave install pending user sudo; package command: `sudo pacman -S --needed gtkwave`.
+## Current host visibility
 
-## Blocker and next step
-- Execution sandbox still cannot resolve GitHub directly; elevated network access succeeded for the official clone and upstream JSON header. No host network settings changed.
-- Frontend currently uses zero-dependency HTML/JS because network is unavailable; React/TypeScript/Vite is not installed or claimed.
+Previously verified host inventory identifies Dabao `1d50:6196`, serial `TLZ4A6`, topology `1-4`, and M5Stick-associated bridge `1a86:55d4`, serial `5B1E046678`, topology `1-3`, with persistent by-id names. M5Stick identity is operator-correlated; descriptor evidence alone identifies its QinHeng bridge, not the M5Stack board model. Current dashboard reports USB identity and tty link availability as separate states. This task did not open either port.
 
-See `docs/ENVIRONMENT_REPORT.md`, `docs/TOOLCHAIN_PLAN.md`, `docs/HARDWARE_INTEGRATION.md` and `docs/DEMO.md`. No physical hardware execution has occurred.
+## Safety state
+
+- Bruce firmware remains installed and untouched. No flash, erase, reset or serial command was performed.
+- `/dev/ttyACM0` and the M5Stick by-id port were not opened by BIOScope; BIOScope changed no DTR/RTS state.
+- The mounted BAOCHIP volume remains untouched. No Dabao console session or firmware write occurred.
+- No M5Stick protocol session exists: Bruce does not implement BIOScope JSON hello. The local BIOScope bridge is not to be run against Bruce.
+
+## Latest validation
+
+- Backend: all 33 tests passed, including device profile/reconnect tests, strict protocol validation, fail-closed physical opener, mock transport framing/timeouts, API integration and the built-in BIO-sim smoke/blink tests.
+- Frontend: `npm run build` passed (TypeScript `tsc -b` and Vite production build; 29 modules bundled).
+- Python compilation and `git diff --check` passed.
+- Existing genuine manifests verify smoke and register inspection at exit 0 with `cfginfo_pass`; blink exit 0 with `gpio21_transitions`, 65 `gpio_out[21]` edges and its verified 107,364-byte FST. GTKWave/FST inspection was previously verified and is documented in `docs/WAVEFORMS.md`.
+- No screenshot is archived: headless Firefox attempts returned API-offline/blank captures, which were discarded instead of being presented as evidence.
+- Hardware integration tests use temporary sysfs/by-id fixtures; they do not access hardware serial devices.
+
+See [device discovery and safe integration](../docs/DEVICE_DISCOVERY.md), [hardware integration](../docs/HARDWARE_INTEGRATION.md), [architecture](../docs/ARCHITECTURE.md), and [demo runbook](../docs/DEMO.md).

@@ -18,7 +18,7 @@ Open `http://127.0.0.1:8765`. The production React dashboard reads host health, 
 
 ## Evidence boundary
 
-The simulator adapter invokes only fixed upstream config and binary paths; no UI-supplied shell command runs. SIMULATED evidence is not physical board execution. USB discovery reads sysfs descriptor metadata only. Mock artifact files are never presented as waveforms. The physical console/update-volume path remains untested and write-gated.
+The simulator adapter invokes only fixed upstream config and binary paths; no UI-supplied shell command runs. SIMULATED evidence is not physical board execution. USB discovery reads sysfs, interface metadata and by-id links; it opens no serial port. Mock artifact files are never presented as waveforms. Bruce's documented `info` command was not sent because Linux CDC ACM opening asserts DTR/RTS and reset-free opening cannot be guaranteed. The Dabao console/update-volume path remains untouched.
 
 ## Waveform segment
 

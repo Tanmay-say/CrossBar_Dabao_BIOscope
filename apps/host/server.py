@@ -5,6 +5,7 @@ from pathlib import Path
 import json, os, shutil, subprocess, time, uuid
 import re
 from bio_sim import run_experiment, available as biosim_available
+from device_discovery import discover
 
 ROOT=Path(__file__).resolve().parents[2]; RUNS=ROOT/'artifacts'/'runs'
 CATALOG=[
@@ -14,20 +15,8 @@ CATALOG=[
  {"id":"mock-loopback","title":"Host pipeline check","category":"Diagnostics","description":"Exercise run orchestration, logs, metadata, and artifact indexing without hardware.","modes":["MOCK"],"requirements":[],"expected":"Explicit mock result; placeholder trace only","available":True},]
 
 def devices():
-    """Evidence-based inventory. Never opens serial ports or reads storage."""
-    found=[]; uart=[]
-    for p in Path('/sys/bus/usb/devices').glob('*'):
-        try:
-            vid=(p/'idVendor').read_text().strip().lower(); pid=(p/'idProduct').read_text().strip().lower()
-            if (vid,pid)==('1d50','6196'):
-                found.append({"id":"dabao","name":"Baochip-1x Dabao","connected":True,"vid":vid,"pid":pid,"serial":(p/'serial').read_text().strip() if (p/'serial').exists() else None,"serial_interface":"/dev/ttyACM0","serial_opened":False,"status":"USB detected; protocol unverified"})
-            if (vid,pid)==('1a86','55d4'):
-                uart.append({"id":"usb-uart-unverified","name":"CH9102 USB UART (board unverified)","connected":True,"vid":vid,"pid":pid,"serial_interface":"USB UART detected; port not opened","status":"USB bridge detected; not sufficient to identify M5Stick"})
-        except (OSError,UnicodeError): pass
-    if not found: found=[{"id":"dabao","name":"Baochip-1x Dabao","connected":False,"status":"Not detected"}]
-    found.extend(uart)
-    found.append({"id":"m5stick","name":"M5StickC Plus2","connected":False,"status":"Board identity not verified; do not infer from USB UART alone"})
-    return found
+    """Return exact-profile matches from sysfs/by-id without opening serial."""
+    return discover()
 
 def execute(config):
     if not isinstance(config,dict) or set(config)-{'experiment_id','mode','timeout','mock_failure','omit_artifact'}: raise ValueError('malformed configuration')
