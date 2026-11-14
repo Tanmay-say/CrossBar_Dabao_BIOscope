@@ -1,19 +1,17 @@
-# M5StickC Plus2 firmware
+# M5StickC Plus2 BIOScope firmware
 
-The official Plus2 setup uses ESP32-PICO-V3-02 with PlatformIO `espressif32@6.7.0`, board `m5stick-c`, Arduino framework and M5Unified. The firmware provides a BIOScope screen, A/B experiment navigation, C run request and JSON protocol v1 status/results.
+This project builds the BIOScope PulseLink receiver for the Plus2: GPIO32 input, rising-edge count/frequency estimate, low-speed transition timestamps, screen status, Button A measurement reset, Button B page change, and protocol-v1 newline-delimited JSON telemetry.
 
-## Build (compile only)
-
-From the repository root:
+## Compile only
 
 ```sh
-python3 -m venv .venv
-.venv/bin/python -m pip install platformio==6.2.0
 scripts/build-m5stick.sh
 ```
 
-The build is reproducible with the pinned M5Unified commit and ArduinoJson version in `platformio.ini`. Build output is ignored at `firmware/m5stick-plus2/.pio/`. **Do not run `pio run -t upload`** unless flashing is explicitly approved. Build verified successfully in this workspace; firmware has not been flashed or run on hardware.
+Verified target: PlatformIO Espressif32 6.7.0, `m5stick-c`, Arduino 2.0.16, M5Unified commit `96576a14247ddc935149145aa6b51943464120f1`, ArduinoJson 7.4.3. The binary compiled successfully in this workspace. Build output is ignored at `firmware/m5stick-plus2/.pio/`.
 
-The prepared host bridge is `apps/host/m5stick_bridge.py`; it expects a BIOScope protocol-v1 hello and is not started by the API automatically. **Do not run it against the connected device while Bruce is installed.** Bruce uses a separate documented command protocol; no serial connection has been made. Keep Bruce intact unless a separately reviewed replacement and recovery plan is approved. See `docs/DEVICE_DISCOVERY.md` and `docs/HARDWARE_INTEGRATION.md`.
+**The firmware has not been flashed. Bruce remains installed.** Do not run `pio run -t upload` or `esptool write_flash` without separate explicit approval. A complete Bruce backup has not been produced or verified. Read `docs/PULSELINK.md` before proposing replacement or recovery.
 
-Official source: [M5Stack StickC Plus2 documentation](https://docs.m5stack.com/en/core/StickC-Plus2).
+The host telemetry reader is opt-in and USB serial open may reset the M5Stick. Do not use `--enable-pulselink-serial` while Bruce is installed. The receiver sends measurements only; it does not accept commands to run hardware or arbitrary host operations.
+
+Official board reference: [M5Stack M5StickC Plus2 documentation](https://docs.m5stack.com/en/core/StickC-Plus2).

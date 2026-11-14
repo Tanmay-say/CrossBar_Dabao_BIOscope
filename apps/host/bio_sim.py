@@ -8,6 +8,8 @@ UPSTREAM=ROOT/'vendor'/'bio-sim'
 
 def available(experiment='bio-smoke'):
     if not (UPSTREAM/'build'/'bio_sim').is_file(): return False
+    if experiment == 'pulselink_signal_generator':
+        return (ROOT/'artifacts/builds/pulselink_signal_generator/pulselink_signal_generator.bin').is_file()
     if experiment == 'dabao-fifo-probe':
         return (ROOT/'artifacts/builds/dabao_fifo_probe/dabao_fifo_probe.bin').is_file()
     return (UPSTREAM/'configs'/'smoke.jsonc').is_file() if experiment in ('bio-smoke','register-inspection') else experiment=='blink' and (UPSTREAM/'sw/blink/blink.bin').is_file()
@@ -15,6 +17,24 @@ def available(experiment='bio-smoke'):
 def run_experiment(experiment: str, run_dir: Path, timeout: int=120):
     """Run an allow-listed upstream configuration or the fixed BIO probe config."""
     if not available(experiment): raise FileNotFoundError(f'official BIO-sim target unavailable: {experiment}')
+    if experiment == 'pulselink_signal_generator':
+        run_dir=Path(run_dir).resolve(); run_dir.mkdir(parents=True,exist_ok=True); started=time.time()
+        command=[str(ROOT/'.venv/bin/python'),str(ROOT/'scripts/run-pulselink-simulation.py'),str(run_dir)]
+        p=subprocess.run(command,cwd=ROOT,capture_output=True,text=True,timeout=max(timeout,240),check=False)
+        manifest_path=run_dir/'manifest.json'
+        if not manifest_path.is_file(): raise RuntimeError(f'PulseLink BIO-sim runner failed: {p.stderr[-500:]}')
+        metadata=json.loads(manifest_path.read_text())
+        stdout_path=run_dir/'stdout.log'; stderr_path=run_dir/'stderr.log'
+        return {'exit_code':metadata['exit_code'],'stdout':stdout_path.read_text(errors='replace') if stdout_path.is_file() else '',
+                'stderr':stderr_path.read_text(errors='replace') if stderr_path.is_file() else p.stderr,
+                'started_at':started,'finished_at':time.time(),'duration_seconds':metadata['duration_seconds'],
+                'artifacts':[{'name':'trace.fst','path':metadata['artifacts'][0]['path'],'type':'fst-waveform',
+                              'verified':metadata['artifacts'][0]['size_bytes']>0,'size_bytes':metadata['artifacts'][0]['size_bytes'],
+                              'sha256':metadata['artifacts'][0]['sha256']}],
+                'validation':metadata['validation'],'configuration':{'path':metadata['configuration_path'],'sha256':metadata['configuration_sha256'],'values':metadata['signal']},
+                'source_revision':metadata['bio_sim_revision'],'tool_versions':metadata['tool_versions'],
+                'evidence':'SIMULATED' if all(metadata['validation'].values()) else 'SIMULATION_FAILED',
+                'observed_signals':metadata['signal']}
     config_name='blink.jsonc' if experiment=='blink' else 'smoke.jsonc'
     waveform_name='blink.fst' if experiment=='blink' else 'trace.fst'
     run_dir=run_dir.resolve(); run_dir.mkdir(parents=True,exist_ok=True); start=time.time()

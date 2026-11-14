@@ -8,7 +8,7 @@ This repository is the fresh BIOScope project root created from the Manjaro Star
 
 ## Safety and operating constraints
 
-- Dabao and M5Stick connect independently to the Manjaro PC by USB. Do not connect their pins together or assume external wiring, sensors, or logic analysis.
+- Dabao and M5Stick connect independently to the Manjaro PC by USB. The new PulseLink experiment proposes one safety-gated digital signal wire plus common ground; wiring is not installed and physical GPIO behavior is not yet verified.
 - Never alter the Dabao `BAOCHIP` update volume without a separately reviewed procedure and explicit approval.
 - Do not guess serial devices, baud rates, pin maps, firmware names, or loader commands.
 - Report compile, simulation, and physical execution as distinct evidence levels.
@@ -37,6 +37,10 @@ Build the Plus2 firmware without uploading it with `scripts/build-m5stick.sh` af
 
 - BIO-sim is an RTL simulation; it does not prove physical Dabao GPIO behavior.
 - Plus2 firmware compiles but has not been flashed or exercised on a physical M5Stick.
+- PulseLink BIO generator compiles and the Plus2 receiver firmware compiles. Neither has been uploaded/run; no cross-board telemetry has been received.
+- PulseLink physical pin mapping and nominal voltage compatibility are sourced from official documentation; unloaded output voltage still must be measured after a separately approved BIO run and before wiring.
+- The PulseLink host serial reader is opt-in; USB discovery never opens the port. Opening the port may reset the M5Stick.
+- A future PulseLink VCD is generated only from actual GPIO32 interrupt timestamps. Dashboard pulse metrics are not a high-resolution logic analyzer; GTKWave opens the completed VCD rather than showing an unverified live capture.
 - M5Stick association is correlated by the user-reported connection, USB arrival, bridge serial and topology; the descriptors themselves identify only the QinHeng USB-UART bridge.
 - Bruce remains intact, but no physical Bruce diagnostics or BIOScope protocol exchange has been performed; opening the serial device is not proven reset-free.
 - The physical probe verifies one FIFO0 transfer, not GPIO pad behavior, electrical output or board-level pin mapping. No physical GPIO experiment is claimed.
@@ -54,5 +58,7 @@ Build the Plus2 firmware without uploading it with `scripts/build-m5stick.sh` af
 - [CrossBar Dabao Hackathon](https://crossbar-inc.com/pages/dabao-hackathon)
 
 The current Dabao USB identity uses VID/PID, product descriptor, serial, topology and exact interface-02 by-id matching; public docs redact the unique serial and device node. Its Xous version was reported by the operator and the documented BIO command path returned the verified FIFO0 sentinel. The one approved session closed the port afterward and left the update volume untouched. The M5Stick remains associated with Bruce and has not been communicated with. Details: `docs/HARDWARE_INTEGRATION.md`, `docs/DEVICE_DISCOVERY.md`, and `docs/M5STICK_FIRMWARE_CHANGE_PROPOSAL.md`.
+
+PulseLink implementation and its current safety gates are described in [`docs/PULSELINK.md`](docs/PULSELINK.md), [`docs/PULSELINK_WIRING.md`](docs/PULSELINK_WIRING.md), and [`docs/PULSELINK_DEMO.md`](docs/PULSELINK_DEMO.md). Current builds are compile/simulation evidence only; no physical PulseLink run is claimed.
 
 Upstream build instructions and versions must be checked from current source before use; see `docs/TOOLCHAIN_PLAN.md`.

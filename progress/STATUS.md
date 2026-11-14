@@ -3,6 +3,23 @@
 **Updated:** 2026-11-12
 **Current milestone:** The pin-free FIFO0 probe succeeded once on physical Dabao and is recorded as `HARDWARE_VERIFIED`. The one-shot physical path is consumed and locked. The full dashboard/API startup and recorded result route are verified; this pass used read-only USB discovery and did not open serial ports. Bruce remains installed on the operator-correlated M5Stick and has no verified BIOScope protocol session.
 
+## PulseLink implementation (2026-11-12)
+
+- Dabao BIO1/PB1 generator (`experiments/bio/pulselink_signal_generator/main.c`) compiled to a 58-byte image with the pinned official BIO-sim translator and errata/link check. It requests ten nominal 1 Hz cycles and final LOW; the physical image has not been uploaded or run.
+- The same source completed BIO-sim run `pulselink-sim-25a8ed17-f063-40d2-9dc9-86aa8b7bdae0`: 10 rising and 10 falling GPIO1 transitions, nominal 1.0-second periods, final LOW; genuine FST 27,539,466 bytes, SHA-256 `aa604817141885f8e23b389fe10a230f1ce2ee1748393c68312b8d22f25de5c7`. Evidence is `SIMULATED`.
+- Plus2 PulseLink firmware compiles with PlatformIO; it records GPIO32 interrupt timestamps, count and frequency and emits bounded JSON v1 telemetry. It has not been flashed; Bruce is unchanged.
+- Host parser, telemetry state, complete-edge VCD writer and dashboard PulseLink view are implemented. Serial monitoring is opt-in and was not started; there is no physical M5Stick telemetry or two-board waveform yet. GTKWave can open the completed VCD; a continuously updating GTKWave session is not implemented.
+- Initial validation caught and fixed capture-overflow propagation and history handling for older manifests. Final backend suite: 63 tests passed (including loopback API and simulator regression) with local-bind permission; host Python compilation passed; dashboard production build passed; `git diff --check` passed. The first sandboxed attempt had one stale test-process API failure and one overflow regression; both were corrected before the final run.
+- Wiring is documented but must remain disconnected until the generator has been staged, its unloaded output is measured, and the operator confirms the leads are connected. The operator authorized the firmware replacement and waived a Bruce backup.
+
+## PulseLink physical authorization (2026-11-12)
+
+- Operator explicitly authorized replacing Bruce, staging the Dabao BIO1/7 kHz generator and executing one two-board run after wiring confirmation; Bruce backup requirement waived.
+- Read-only discovery revalidated both profiles and persistent links: Dabao `1d50:6197` / `TLZ4A6` / `1-4`; operator-correlated M5Stick bridge `1a86:55d4` / `5B1E046678` / `1-3`. Neither serial port was opened by the discovery.
+- The PlatformIO upload command was attempted against the exact M5Stick by-id path but `sudo` exited before PlatformIO due to the non-interactive shell lacking a password TTY. No M5Stick flash occurred. The operator must run the documented command from an interactive terminal and provide output.
+- Added a constrained Dabao staging helper pinned to Xous commit `8964027fff25f8b85d3d3c63933d365ac7614523`; it will send only `bio pin 1`, `bio clk 7000`, one validated chunk and `bio pad`, and never sends `bio reload`. Three fake-transport tests pass. No Dabao command was sent.
+- The signal wire remains disconnected. The staged generator must not be reloaded or executed until the operator confirms wiring readiness.
+
 ## Verified working
 
 - Official BIO-sim source at `7e9c9615e1c900c7ddae1c4645a87078b217abc3`; smoke, register inspection (`sfr_cfginfo == 0x10000408`) and blink pass in simulation.

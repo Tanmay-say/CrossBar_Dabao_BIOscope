@@ -42,6 +42,16 @@ class MockAdapterTests(unittest.TestCase):
             asset=page.split('src="')[1].split('"')[0]
             with urllib.request.urlopen(base+asset) as r: self.assertIn('Experiment control room',r.read().decode())
             with urllib.request.urlopen(base+'/api/experiments') as r: self.assertTrue(json.load(r))
+            with urllib.request.urlopen(base+'/api/pulselink') as r:
+                pulse=json.load(r)
+                self.assertFalse(pulse['connected'])
+                self.assertEqual(pulse['mode'],'NOT_CONNECTED')
+                self.assertIsNone(pulse['telemetry'])
+            with urllib.request.urlopen(base+'/api/experiments') as r:
+                entries=json.load(r)
+                pulse_exp=next(item for item in entries if item['id']=='pulselink_signal_generator')
+                self.assertIn('SIMULATION',pulse_exp['modes'])
+                self.assertTrue(pulse_exp['requires_manual_approval'])
             with urllib.request.urlopen(base+'/api/devices') as r:
                 inventory=json.load(r)
                 self.assertEqual({d['id'] for d in inventory},{'dabao','m5stick'})
@@ -107,6 +117,17 @@ class MockAdapterTests(unittest.TestCase):
         self.assertEqual(r['evidence'],'SIMULATED')
         self.assertTrue(r['validation']['fifo0_sentinel_received'])
         self.assertIn('0xb105c0de',r['stdout'].lower())
+
+    def test_pulselink_simulation_if_built(self):
+        from bio_sim import available
+        if not available('pulselink_signal_generator'): self.skipTest('PulseLink target image has not been built')
+        r=execute({'experiment_id':'pulselink_signal_generator','mode':'SIMULATION'})
+        self.assertEqual(r['evidence'],'SIMULATED')
+        self.assertTrue(r['validation']['ten_rising_edges'])
+        self.assertTrue(r['validation']['ten_falling_edges'])
+        self.assertTrue(r['validation']['safe_final_low'])
+        self.assertEqual(r['artifacts'][0]['type'],'fst-waveform')
+        self.assertGreater(r['artifacts'][0]['size_bytes'],0)
 
     def test_waveform_launcher(self):
         from bio_sim import available

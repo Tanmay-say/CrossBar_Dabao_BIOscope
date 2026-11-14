@@ -32,6 +32,14 @@ type DabaoCapabilities = {
   execution_state: string; physical_execution_enabled: boolean; reason: string;
   last_verified_run?: { run_id: string; evidence: string; started_at_utc: string; expected: string; actual: string; xous_version: string; device_serial: string } | null;
 };
+type PulseEvent = { timestamp_us: number; level: 0 | 1; received_at?: string };
+type PulseSnapshot = {
+  mode: string; connected: boolean; device: string | null; source: string;
+  state: string; telemetry: null | { state: string; pulse_count: number; frequency_hz: number | null; signal_level: 0 | 1; uptime_us: number; sequence: number; edge_overflow: boolean };
+  last_seen: string | null; events: PulseEvent[]; error: string | null;
+  capture: null | { run_id: string; path: string; size_bytes: number; evidence: string };
+  capture_complete: boolean;
+};
 
 async function get<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -46,6 +54,7 @@ function App() {
   const [runs, setRuns] = useState<Run[]>([]);
   const [health, setHealth] = useState<Health | null>(null);
   const [dabaoCapabilities, setDabaoCapabilities] = useState<DabaoCapabilities | null>(null);
+  const [pulseLink, setPulseLink] = useState<PulseSnapshot | null>(null);
   const [selected, setSelected] = useState('bio-smoke');
   const [mode, setMode] = useState('SIMULATION');
   const [result, setResult] = useState<Run | null>(null);
@@ -53,7 +62,7 @@ function App() {
   const [viewerMessage, setViewerMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [query, setQuery] = useState('');
-  const pageKeys = ['overview', 'hardware', 'experiments', 'simulation', 'waveform', 'history', 'diagnostics'] as const;
+  const pageKeys = ['overview', 'hardware', 'pulselink', 'experiments', 'simulation', 'waveform', 'history', 'diagnostics'] as const;
   type Page = typeof pageKeys[number];
   const initialPage = (pageKeys.find(key => window.location.hash === `#${key}`) || 'overview') as Page;
   const [activePage, setActivePage] = useState<Page>(initialPage);
@@ -74,17 +83,18 @@ function App() {
   }
   async function refreshDevices() {
     try {
-      const [found, capability] = await Promise.all([
+      const [found, capability, pulse] = await Promise.all([
         get<Device[]>('/api/devices'), get<DabaoCapabilities>('/api/hardware/capabilities'),
+        get<PulseSnapshot>('/api/pulselink'),
       ]);
-      setDevices(found); setDabaoCapabilities(capability);
+      setDevices(found); setDabaoCapabilities(capability); setPulseLink(pulse);
     }
     catch (reason) { setError((reason as Error).message); }
   }
   useEffect(() => {
     void refresh(); void refreshDevices();
     const mainTimer = window.setInterval(() => void refresh(), 8000);
-    const deviceTimer = window.setInterval(() => void refreshDevices(), 2000);
+    const deviceTimer = window.setInterval(() => void refreshDevices(), 500);
     return () => { window.clearInterval(mainTimer); window.clearInterval(deviceTimer); };
   }, []);
 
@@ -121,7 +131,7 @@ function App() {
     <aside className="sidebar">
       <div className="logo">BIO<span>SCOPE</span></div><small>OPEN-SILICON LABORATORY</small>
       <nav>
-        {([['overview','◈','Overview'],['hardware','▦','Hardware devices'],['experiments','⌘','Experiment explorer'],['simulation','⌁','Simulation console'],['waveform','∿','Waveform viewer'],['history','▤','Run history'],['diagnostics','⚙','Diagnostics']] as [Page,string,string][]).map(([key,icon,label]) =>
+        {([['overview','◈','Overview'],['hardware','▦','Hardware devices'],['pulselink','⌁','PulseLink'],['experiments','⌘','Experiment explorer'],['simulation','⌁','Simulation console'],['waveform','∿','Waveform viewer'],['history','▤','Run history'],['diagnostics','⚙','Diagnostics']] as [Page,string,string][]).map(([key,icon,label]) =>
           <button key={key} className={activePage === key ? 'navitem active' : 'navitem'} onClick={() => navigate(key)}>{icon} &nbsp; {label}</button>)}
       </nav>
       <footer>MANJARO HOST<br />LOCAL SESSION</footer>
@@ -129,10 +139,15 @@ function App() {
     <main>
       <header>
         <div><label>{activePage === 'hardware' ? 'HARDWARE LABORATORY / USB INVENTORY' : 'DEVELOPER LABORATORY / HOST'}</label>
-          <h1>{({overview:'Experiment control room',hardware:'Hardware devices',experiments:'Experiment explorer',simulation:'Simulation console',waveform:'Waveform viewer',history:'Run history',diagnostics:'Diagnostics'} as Record<Page,string>)[activePage]}</h1></div>
+          <h1>{({overview:'Experiment control room',hardware:'Hardware devices',pulselink:'PulseLink two-board experiment',experiments:'Experiment explorer',simulation:'Simulation console',waveform:'Waveform viewer',history:'Run history',diagnostics:'Diagnostics'} as Record<Page,string>)[activePage]}</h1></div>
         <span className={health ? 'pill good' : 'pill bad'}>● {health ? 'HOST ONLINE' : 'API OFFLINE'}</span>
       </header>
-      {hardwareOpen ? <HardwarePage devices={devices} capabilities={dabaoCapabilities} error={error} /> : <>
+      {activePage === 'pulselink' ? <PulseLinkPage snapshot={pulseLink} devices={devices} runs={runs} onRun={async () => {
+        setBusy(true); setError('');
+        try { const run = await get<Run>('/api/runs', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({experiment_id:'pulselink_signal_generator',mode:'SIMULATION'})}); setResult(run); await refresh(); }
+        catch (reason) { setError((reason as Error).message); }
+        finally { setBusy(false); }
+      }} busy={busy} error={error} /> : hardwareOpen ? <HardwarePage devices={devices} capabilities={dabaoCapabilities} error={error} /> : <>
         <div className="notice"><b>SIMULATION EVIDENCE</b> — simulator runs execute official BIO-sim. MOCK runs only exercise the host pipeline. Neither implies physical hardware execution.</div>
         <section className="metrics" id="overview">
           <Metric title="Host API" value={health ? 'Online' : 'Offline'} note="Local service health" />
@@ -172,6 +187,61 @@ function App() {
       </>}
       <p className="end">BIOScope · Simulation and physical execution are reported as separate evidence classes.</p>
     </main>
+  </div>;
+}
+
+function PulseLinkPage({ snapshot, devices, runs, onRun, busy, error }: {
+  snapshot: PulseSnapshot | null; devices: Device[]; runs: Run[]; onRun: () => void; busy: boolean; error: string;
+}) {
+  const dabao = devices.find(device => device.id === 'dabao');
+  const stick = devices.find(device => device.id === 'm5stick');
+  const simulation = runs.find(run => run.experiment_id === 'pulselink_signal_generator' && run.mode === 'SIMULATION');
+  const telemetry = snapshot?.telemetry;
+  const events = snapshot?.events.slice(-24) || [];
+  const graphPoints = events.length > 1 ? (() => {
+    const lo = events[0].timestamp_us, hi = Math.max(events[events.length - 1].timestamp_us, lo + 1);
+    let level = events[0].level === 1 ? 0 : 1;
+    const pts = [`0,${level ? 14 : 86}`];
+    events.forEach(event => { const x = ((event.timestamp_us - lo) / (hi - lo)) * 700; const y = event.level ? 14 : 86; pts.push(`${x},${level ? 14 : 86}`, `${x},${y}`); level = event.level; });
+    return pts.join(' ');
+  })() : '';
+  async function openCapture() {
+    if (!snapshot?.capture) return;
+    try { const opened = await get<{launched:boolean}>(`/api/pulselink/captures/${snapshot.capture.run_id}/waveform/open`,{method:'POST'}); if (!opened.launched) throw Error('GTKWave did not launch'); }
+    catch (reason) { window.alert((reason as Error).message); }
+  }
+  return <div className="pulselink-page">
+    <section className="panel pulse-hero">
+      <div><span className="tag">BIOscope PulseLink</span><h2>Dabao emits · M5Stick measures · host records</h2>
+        <p className="muted">The display and live trace use only measurements received from the Plus2 GPIO32 interrupt stream. No telemetry means no waveform.</p></div>
+      <span className={`pill ${snapshot?.connected ? 'good' : 'bad'}`}>{snapshot?.connected ? 'LIVE HARDWARE TELEMETRY' : 'NO LIVE HARDWARE TELEMETRY'}</span>
+    </section>
+    {error && <p className="error">{error}</p>}
+    <div className="pulse-board-grid">
+      <article className="panel pulse-board"><small>DABAO SIGNAL SOURCE</small><h3><i className={dabao?.connected ? 'dot' : 'dot off'} />{dabao?.connected ? 'USB identity present' : 'Disconnected'}</h3><p>BIO1 / GPIO_PB1 · Dabao header pin 29</p><p className="muted">BIO program: prepared, compiled; physical upload and execution require separate approval.</p><span className="tag">{dabao?.connected ? 'DEVICE DISCOVERED' : 'OFFLINE'}</span></article>
+      <article className="panel pulse-board"><small>M5STICK RECEIVER</small><h3><i className={snapshot?.connected ? 'dot' : 'dot off'} />{snapshot?.connected ? 'PulseLink firmware streaming' : (stick?.connected ? 'USB bridge detected; receiver stream not active' : 'Disconnected')}</h3><p>GPIO32 · interrupt edge timestamps · protocol v1</p><p className="muted">Identity is USB-bridge/profile matched. Opening serial is explicitly opt-in and may reset the MCU.</p><span className="tag">{snapshot?.connected ? 'LIVE HARDWARE' : stick?.connected ? 'USB PRESENT · NO TELEMETRY' : 'OFFLINE'}</span></article>
+    </div>
+    <section className="pulse-metrics">
+      <Metric title="Evidence mode" value={snapshot?.connected ? 'LIVE HW' : 'NO LINK'} note={snapshot?.source || 'Awaiting actual telemetry'} />
+      <Metric title="Rising pulses" value={telemetry ? `${telemetry.pulse_count} / 10` : '—'} note={telemetry?.state || 'No measurement'} />
+      <Metric title="Measured frequency" value={telemetry?.frequency_hz == null ? '—' : `${telemetry.frequency_hz.toFixed(3)} Hz`} note="from measured rising-edge period" />
+      <Metric title="GPIO32 level" value={telemetry ? String(telemetry.signal_level) : '—'} note={snapshot?.last_seen ? `last received ${new Date(snapshot.last_seen).toLocaleTimeString()}` : 'no live sample'} />
+    </section>
+    <section className="panel pulse-wave-panel"><div className="panelhead"><div><span className="tag">{snapshot?.connected ? 'LIVE HARDWARE · INTERRUPT EDGE VIEW' : 'NO LIVE DATA'}</span><h2>GPIO32 measured signal</h2></div>{snapshot?.capture_complete && snapshot.capture && <button onClick={openCapture}>Open captured VCD in GTKWave</button>}</div>
+      <svg className="pulse-wave" viewBox="0 0 700 100" role="img" aria-label="Measured GPIO32 transitions from real M5Stick telemetry">
+        <line x1="0" y1="14" x2="700" y2="14"/><line x1="0" y1="86" x2="700" y2="86"/>
+        {graphPoints && <polyline points={graphPoints} />}
+        {!graphPoints && <text x="350" y="53" textAnchor="middle">Connect PulseLink firmware and capture actual GPIO transitions</text>}
+      </svg>
+      <div className="pulse-wave-legend"><span>HIGH = 1</span><span>LOW = 0</span><span>{events.length} captured edge events in latest window</span></div>
+      {snapshot?.error && <p className="error">{snapshot.error}</p>}
+      {snapshot?.capture && <p className="muted">Completed hardware capture: {snapshot.capture.run_id} · {snapshot.capture.size_bytes} bytes · {snapshot.capture.evidence} · <code>{snapshot.capture.path}</code></p>}
+      <p className="muted">GTKWave uses the completed edge-timestamp VCD captured from GPIO32. It is a low-rate digital edge record, not an analog or high-resolution logic-analyzer acquisition.</p>
+    </section>
+    <section className="pulse-lower-grid">
+      <article className="panel"><div className="panelhead"><h2>Experiment configuration</h2><span className="tag">10 pulses · 1 Hz · final LOW</span></div><p>BIO quantum target 7 kHz; 3,500 quantum waits per half-period. Dabao BIO1 maps to physical header pin 29. M5Stick input is Grove GPIO32.</p><p className="muted">Dashboard hardware start/stop is disabled until the physical BIO image, Plus2 firmware and wiring are separately approved and prepared.</p><button disabled={busy} onClick={onRun}>{busy ? 'Simulating…' : 'Run BIO-sim baseline'}</button></article>
+      <article className="panel"><h2>Evidence and event timeline</h2>{snapshot?.connected && events.length ? events.slice(-8).reverse().map((event, index) => <div className="pulse-event" key={`${event.timestamp_us}-${index}`}><b>GPIO32 → {event.level}</b><span>{event.timestamp_us} μs · received {event.received_at ? new Date(event.received_at).toLocaleTimeString() : 'now'}</span></div>) : <p className="muted">No live hardware edge events received. This timeline stays empty until the receiver sends real telemetry.</p>}{simulation && <p className="pulse-evidence">SIMULATION · {simulation.run_id} · {simulation.validation?.ten_rising_edges ? '10 rises PASS' : simulation.state} · FST evidence remains simulation-only.</p>}</article>
+    </section>
   </div>;
 }
 

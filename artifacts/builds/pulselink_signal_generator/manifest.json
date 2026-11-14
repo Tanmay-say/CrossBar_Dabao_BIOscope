@@ -1,0 +1,37 @@
+{
+  "experiment_id": "pulselink_signal_generator",
+  "classification": "COMPILE_ONLY",
+  "built_at_utc": "2026-11-12T12:09:24Z",
+  "source": "experiments/bio/pulselink_signal_generator/main.c",
+  "source_sha256": "7fb25e678f247a1ff452d5f254790a633a26fe241e466addb680271a3b2e9847",
+  "upstream_repository": "https://github.com/baochip/bio-sim",
+  "bio_sim_revision": "7e9c9615e1c900c7ddae1c4645a87078b217abc3",
+  "zig_version": "0.15.2",
+  "target": "BIO RV32IMC; official clang2rustasm translator with errata/link validation",
+  "pin": {
+    "bio_pin": 1,
+    "dabao_gpio": "PB1",
+    "header_physical_pin": 29,
+    "direction": "output"
+  },
+  "timing": {
+    "requested_quantum_hz": 7000,
+    "half_period_quantums": 3500,
+    "expected_period_seconds": 1.0,
+    "rising_edges": 10,
+    "safe_final_level": 0,
+    "timing_note": "Integer divider from 350 MHz is 50000; compiler loop overhead is small but physical rate requires instrumented validation."
+  },
+  "persistent_xous_setup": [
+    "bio pin 1",
+    "bio clk 7000",
+    "upload 64-byte indexed Base64 chunks",
+    "bio pad",
+    "bio reload"
+  ],
+  "binary": "artifacts/builds/pulselink_signal_generator/pulselink_signal_generator.bin",
+  "binary_size_bytes": 58,
+  "binary_sha256": "22db6c3980ff91f0d953b27180d0823abce9276a8e1391f13266365f2a412c3e",
+  "errata_validation": "PASS if official translator completes (required for manifest generation)",
+  "physical_execution": "NOT RUN; persistent BIO keystore write requires separate approval"
+}

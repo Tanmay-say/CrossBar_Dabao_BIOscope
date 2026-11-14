@@ -8,8 +8,8 @@ BIOScope is an open-silicon hardware security and programmable-I/O laboratory ba
 ## Hardware and constraints
 - Dabao board + M5StickC Plus2 + Manjaro PC.
 - Each board connects independently to the PC by USB data cable.
-- No jumper wires, breadboard, external modules, or external sensors.
-- No direct board-to-board GPIO/electrical connection.
+- The normal device topology is independent USB connections to the host. PulseLink is an explicitly approved exception for a single low-speed Dabao BIO-to-M5Stick GPIO signal and common ground; no wiring is installed until voltage and safety checks are complete.
+- No breadboard, external modules, external sensors, or arbitrary wiring. PulseLink uses only the documented Dabao header and Plus2 Grove GPIO.
 - No external bus sniffing or logic-analyzer claims without actual wiring.
 - Do not modify the Dabao BAOCHIP update volume without a reviewed procedure.
 - Do not assume chip-level features are exposed through a usable API.
@@ -24,7 +24,7 @@ BIOScope is an open-silicon hardware security and programmable-I/O laboratory ba
 2. Validate config.
 3. Compile/simulate using official BIO-sim workflow.
 4. Collect logs, waveforms and metadata.
-5. Optionally execute on hardware only after target, firmware, pads and loader are verified and user approves.
+5. Optionally execute on hardware only after target, firmware, pads and loader are verified and user approves. PulseLink additionally requires a checked signal/ground wire and measured output voltage.
 6. Present honest status in dashboard and M5Stick.
 
 ## Functional priorities

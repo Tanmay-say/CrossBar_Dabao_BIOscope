@@ -8,6 +8,7 @@ import hashlib
 from bio_sim import run_experiment, available as biosim_available
 from device_discovery import discover
 from dabao_hardware import capabilities as dabao_capabilities
+from pulselink import PulseLinkStore, PulseLinkSerialService
 
 ROOT=Path(__file__).resolve().parents[2]; RUNS=ROOT/'artifacts'/'runs'
 CATALOG=[
@@ -15,7 +16,11 @@ CATALOG=[
  {"id":"register-inspection","title":"BIO configuration register inspection","category":"Analysis","description":"Run official no-firmware smoke self-check of sfr_cfginfo at offset 0x04.","modes":["SIMULATION","MOCK"],"requirements":["BIO-sim","Verilator"],"expected":"0x10000408 register read and captured FST","available":biosim_available('register-inspection')},
  {"id":"blink","title":"BIO GPIO blink","category":"I/O","description":"Upstream C blink firmware toggles and monitors GPIO 21 in the BIO simulator.","modes":["SIMULATION","MOCK"],"requirements":["BIO-sim","Zig 0.15.2"],"expected":"GPIO 21 transitions and FST waveform","available":biosim_available('blink')},
  {"id":"dabao-fifo-probe","title":"Dabao BIO FIFO0 sentinel probe","category":"Physical BIO","description":"A 20-byte pin-free BIO program emits 0xB105C0DE. One approved physical Dabao run is recorded. The one-shot hardware path is consumed and locked; this catalog entry remains available in simulation.","modes":["SIMULATION","MOCK","HARDWARE"],"requirements":["Dabao with verified Xous BIO console","BIO-sim for simulation"],"expected":"FIFO0 sentinel 0xB105C0DE","available":True,"requires_manual_approval":True,"hardware_state":"HARDWARE_VERIFIED","hardware_evidence":"HARDWARE_VERIFIED","verified_run_id":"d61c047a-8fcc-4b4f-b5f8-f5eb5f2a7a62"},
+ {"id":"pulselink_signal_generator","title":"BIOscope PulseLink — Dabao signal to M5Stick","category":"Two-board hardware","description":"BIO1 generates ten low-speed pulses; Plus2 GPIO32 counts real rising edges and reports interrupt timestamps for an edge-derived VCD. Physical operation is approval-gated.","modes":["SIMULATION","HARDWARE"],"requirements":["Dabao Xous BIO console","Plus2 PulseLink firmware","verified 3.3 V wiring"],"expected":"10 rising/10 falling edges, approximately 1 Hz, safe LOW final state","available":biosim_available('pulselink_signal_generator'),"requires_manual_approval":True,"hardware_state":"PREPARED_NOT_EXECUTED"},
  {"id":"mock-loopback","title":"Host pipeline check","category":"Diagnostics","description":"Exercise run orchestration, logs, metadata, and artifact indexing without hardware.","modes":["MOCK"],"requirements":[],"expected":"Explicit mock result; placeholder trace only","available":True},]
+
+PULSELINK_STORE=PulseLinkStore(capture_root=RUNS)
+PULSELINK_SERVICE=None
 
 def devices():
     """Return exact-profile matches from sysfs/by-id without opening serial."""
@@ -28,7 +33,7 @@ def execute(config):
     mode=config.get('mode','MOCK')
     if mode not in exp['modes']: raise ValueError('execution mode is not supported by this experiment')
     if mode=='HARDWARE': raise PermissionError('physical execution is history-only; the one-shot probe is consumed and HTTP hardware writes are disabled')
-    if mode=='SIMULATION' and eid not in ('bio-smoke','register-inspection','blink','dabao-fifo-probe'): raise ValueError('no verified simulation adapter for this experiment')
+    if mode=='SIMULATION' and eid not in ('bio-smoke','register-inspection','blink','dabao-fifo-probe','pulselink_signal_generator'): raise ValueError('no verified simulation adapter for this experiment')
     if mode not in ('MOCK','SIMULATION'): raise ValueError('hardware mode is safety locked')
     if config.get('timeout'): raise TimeoutError('mock run timed out')
     rid=str(uuid.uuid4()); out=RUNS/rid; out.mkdir(parents=True)
@@ -60,7 +65,7 @@ def load_run_manifest(run_dir):
     manifest_path=run_dir/'manifest.json'
     if not manifest_path.is_file(): raise FileNotFoundError('run not found')
     manifest=json.loads(manifest_path.read_text())
-    if manifest.get('mode')=='HARDWARE':
+    if manifest.get('mode')=='HARDWARE' and manifest.get('experiment_id')=='dabao-fifo-probe':
         run_id=run_dir.name
         amendment_path=ROOT/'docs/hardware-evidence'/f'{run_id}-amendment.json'
         if amendment_path.is_file():
@@ -100,7 +105,8 @@ def load_run_manifest(run_dir):
     return manifest
 
 def history():
-    return sorted((load_run_manifest(p.parent) for p in RUNS.glob('*/manifest.json')),key=lambda x:x['started_at'],reverse=True) if RUNS.exists() else []
+    runs = (load_run_manifest(p.parent) for p in RUNS.glob('*/manifest.json')) if RUNS.exists() else ()
+    return sorted(runs, key=lambda item: item.get('started_at', item.get('finished_at', 0)), reverse=True)
 def health():
     return {"ok":True,"service":"BIOScope host","simulator":{"available":biosim_available(),"version":subprocess.run(['verilator','--version'],capture_output=True,text=True).stdout.strip() if shutil.which('verilator') else None,"bio_sim":"ready" if biosim_available() else "not acquired"}}
 
@@ -119,6 +125,23 @@ def launch_waveform(run_id):
     proc=subprocess.Popen([viewer,str(target)],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
     return {'launched':True,'pid':proc.pid,'path':str(target.relative_to(ROOT))}
 
+def launch_pulselink_waveform(run_id):
+    if not re.fullmatch(r'[a-f0-9-]{36}',run_id): raise ValueError('invalid run id')
+    viewer=shutil.which('gtkwave')
+    if not viewer: raise FileNotFoundError('GTKWave is not installed or not on PATH')
+    if not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')): raise EnvironmentError('No graphical display session is available to this host process')
+    manifest_path=RUNS/run_id/'manifest.json'
+    if not manifest_path.is_file(): raise FileNotFoundError('PulseLink capture not found')
+    manifest=json.loads(manifest_path.read_text())
+    if manifest.get('experiment_id')!='pulselink_signal_generator' or manifest.get('evidence')!='LIVE_HARDWARE':
+        raise ValueError('run is not a genuine PulseLink hardware capture')
+    trace=next((a for a in manifest.get('artifacts',[]) if a.get('type')=='vcd-waveform' and a.get('evidence')=='LIVE_HARDWARE'),None)
+    if not trace: raise ValueError('capture has no verified hardware VCD')
+    target=(ROOT/trace['path']).resolve()
+    if target.parent!=(RUNS/run_id).resolve() or not target.is_file(): raise ValueError('capture artifact missing or outside its run')
+    proc=subprocess.Popen([viewer,str(target)],stdin=subprocess.DEVNULL,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL,start_new_session=True)
+    return {'launched':True,'pid':proc.pid,'path':str(target.relative_to(ROOT)),'evidence':'LIVE_HARDWARE'}
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
     def respond(self,status,obj):
@@ -126,6 +149,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self): self.send_response(204); self.send_header('Access-Control-Allow-Origin','*'); self.send_header('Access-Control-Allow-Headers','Content-Type'); self.send_header('Access-Control-Allow-Methods','GET, POST, OPTIONS'); self.end_headers()
     def do_GET(self):
         routes={'/api/health':health,'/api/devices':devices,'/api/experiments':lambda:CATALOG,'/api/runs':history,
+                '/api/pulselink':PULSELINK_STORE.snapshot,
                 '/api/hardware/capabilities':lambda:dabao_capabilities(devices())}
         if self.path in routes: return self.respond(200,routes[self.path]())
         if self.path.startswith('/api/runs/'):
@@ -151,6 +175,12 @@ class Handler(BaseHTTPRequestHandler):
                 b=target.read_bytes(); self.send_response(200); self.send_header('Content-Type','text/css' if target.suffix=='.css' else 'text/javascript'); self.send_header('Content-Length',str(len(b))); self.end_headers(); self.wfile.write(b); return
         self.respond(404,{"error":"not found"})
     def do_POST(self):
+        pl=re.fullmatch(r'/api/pulselink/captures/([a-f0-9-]{36})/waveform/open',self.path)
+        if pl:
+            try: return self.respond(200,launch_pulselink_waveform(pl.group(1)))
+            except FileNotFoundError as e: return self.respond(404,{'error':str(e)})
+            except EnvironmentError as e: return self.respond(503,{'error':str(e)})
+            except ValueError as e: return self.respond(400,{'error':str(e)})
         m=re.fullmatch(r'/api/runs/([a-f0-9-]{36})/waveform/open',self.path)
         if m:
             try: return self.respond(200,launch_waveform(m.group(1)))
@@ -169,5 +199,14 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__=='__main__':
     import argparse
-    ap=argparse.ArgumentParser(); ap.add_argument('--host',default='127.0.0.1'); ap.add_argument('--port',type=int,default=8765); a=ap.parse_args()
-    print(f'BIOScope host API listening at http://{a.host}:{a.port} (physical hardware runs are history-only; no HTTP hardware writes)'); ThreadingHTTPServer((a.host,a.port),Handler).serve_forever()
+    ap=argparse.ArgumentParser(); ap.add_argument('--host',default='127.0.0.1'); ap.add_argument('--port',type=int,default=8765)
+    ap.add_argument('--enable-pulselink-serial',action='store_true',help='opt in to opening the identity-matched M5Stick tty; USB serial open may reset the MCU')
+    a=ap.parse_args()
+    if a.enable_pulselink_serial:
+        PULSELINK_SERVICE=PulseLinkSerialService(PULSELINK_STORE)
+        PULSELINK_SERVICE.start()
+        print('PulseLink serial explicitly enabled. Only start after BIOScope firmware is installed; tty open may reset the M5Stick.',flush=True)
+    print(f'BIOScope host API listening at http://{a.host}:{a.port} (Dabao physical execution is approval-gated; PulseLink telemetry mode={"opt-in" if a.enable_pulselink_serial else "disabled"})',flush=True)
+    try: ThreadingHTTPServer((a.host,a.port),Handler).serve_forever()
+    finally:
+        if PULSELINK_SERVICE: PULSELINK_SERVICE.stop()
